@@ -1,4 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "./server" }, { "path": "./test" }, { "path": "./web" }]
+  "references": [{ "path": "./backend" }, { "path": "./test" }, { "path": "./frontend" }]
 }

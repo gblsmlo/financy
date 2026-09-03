@@ -1,49 +1,61 @@
-# Requisitos e rastreabilidade
+# Requisitos — Financy
 
-Este documento é a fonte de verdade do escopo obrigatório. Um item só pode mudar para
-**Concluído** quando houver implementação e evidência verificável.
+Rastreabilidade entre o enunciado do desafio (Rocketseat, Expansão de Habilidades — TD-360) e a
+implementação. Fonte: plataforma da Rocketseat, lida em 2026-09-03.
 
-## Back-end
+Link do desafio: https://ftr.rocketseat.com.br/projects/td-360-desafio-pratico-da-fase-3-financy
+Figma: https://www.figma.com/community/file/1580994817007013257
 
-| ID | Requisito | Estado | Evidência esperada |
+## Funcionais (back-end e front-end)
+
+| # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| BE-01 | Criar um link | Concluído | Testes da rota e caso de uso |
-| BE-02 | Rejeitar encurtamento mal formatado | Concluído | Teste de validação 400 |
-| BE-03 | Rejeitar encurtamento já existente | Concluído | Restrição única e teste 409 |
-| BE-04 | Deletar por `shortCode` | Concluído | Testes 204 e 404 |
-| BE-05 | Obter URL original por `shortCode` | Concluído | Testes 200 e 404 |
-| BE-06 | Listar links de forma performática | Concluído | Cursor, índice e `EXPLAIN ANALYZE` com 10 mil registros |
-| BE-07 | Incrementar acessos por `shortCode` | Concluído | Atualização atômica e teste concorrente |
-| BE-08 | Exportar links em CSV | Concluído | Testes de conteúdo, escaping e rota HTTP |
-| BE-09 | Disponibilizar CSV via CDN | Concluído | Upload real e `200 OK` na URL pública R2 |
-| BE-10 | Gerar nome aleatório e único | Concluído | UUID no nome do objeto e teste de unicidade |
-| BE-11 | Habilitar CORS | Concluído | Registro de `@fastify/cors` e teste/build |
-| BE-12 | Usar TypeScript, Fastify, Drizzle e PostgreSQL | Concluído | Stack implementada e validada em build/testes |
-| BE-13 | Disponibilizar script `db:migrate` | Concluído | `server/package.json` e comando raiz |
-| BE-14 | Fornecer `.env.example` completo | Concluído | `server/.env.example` |
-| BE-15 | Fornecer Dockerfile da aplicação | Concluído | `server/Dockerfile` multi-stage |
+| FR-01 | Usuário pode criar conta e fazer login | 002 | Planejado |
+| FR-02 | Usuário só vê/gerencia suas próprias transações e categorias | 004 | Planejado |
+| FR-03 | Criar transação | 004 | Planejado |
+| FR-04 | Deletar transação | 004 | Planejado |
+| FR-05 | Editar transação | 004 | Planejado |
+| FR-06 | Listar todas as transações | 004 | Planejado |
+| FR-07 | Criar categoria | 004 | Planejado |
+| FR-08 | Deletar categoria | 004 | Planejado |
+| FR-09 | Editar categoria | 004 | Planejado |
+| FR-10 | Listar todas as categorias | 004 | Planejado |
+| FR-11 | Front-end usa GraphQL para consultar a API, Vite como bundler | 005 | Planejado |
+| FR-12 | Front-end segue o mais fielmente possível o layout do Figma | 006 | Planejado |
 
-## Front-end
+## Não funcionais — back-end
 
-| ID | Requisito | Estado | Evidência esperada |
+| # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| FE-01 | SPA React, TypeScript e Vite sem framework | Concluído | Build apenas cliente |
-| FE-02 | Página `/` com formulário e listagem | Concluído | FE-T01, FE-T02 e FE-T06 |
-| FE-03 | Página `/:shortCode` com redirecionamento | Concluído | FE-T07 |
-| FE-04 | Página de recurso não encontrado | Concluído | FE-T08 e FE-T09 |
-| FE-05 | Validar formato e conflitos no formulário | Concluído | FE-T03 e FE-T04 |
-| FE-06 | Excluir link | Concluído | FE-T05 |
-| FE-07 | Incrementar acesso e redirecionar | Concluído | FE-T07 |
-| FE-08 | Baixar CSV | Concluído | FE-T10 |
-| FE-09 | Loading, bloqueio de ações e empty state | Concluído | FE-T01, FE-T11 e FE-T12 |
-| FE-10 | Layout fiel ao Figma e responsivo | Em andamento | FE-T13 e FE-T14; revisão visual do Figma pendente |
-| FE-11 | Fornecer `.env.example` completo | Concluído | `web/.env.example` |
+| NFR-01 | TypeScript | 001 | Planejado |
+| NFR-02 | GraphQL | 001 | Planejado |
+| NFR-03 | Prisma | 001 | Planejado |
+| NFR-04 | SQLite (Postgres é opção, não obrigatório) | 001 | Planejado |
+| NFR-05 | CORS habilitado | 001 | Planejado |
+| NFR-06 | `.env.example` com `JWT_SECRET` e `DATABASE_URL` | 001 | Planejado |
+
+## Não funcionais — front-end
+
+| # | Requisito | Fase | Status |
+| --- | --- | --- | --- |
+| NFR-07 | TypeScript | 005 | Planejado |
+| NFR-08 | React | 005 | Planejado |
+| NFR-09 | Vite sem framework | 005 | Planejado |
+| NFR-10 | GraphQL | 005 | Planejado |
+| NFR-11 | `.env.example` com `VITE_BACKEND_URL` | 005 | Planejado |
+
+## Flexíveis (adotados — ver [ADR 004](decisions/004-frontend-data-layer.md))
+
+TailwindCSS, Shadcn, React Query, React Hook Form, Zod.
 
 ## Entrega
 
-| ID | Requisito | Estado | Evidência esperada |
+| # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| DL-01 | Repositório público no GitHub | Concluído | https://github.com/gblsmlo/brev.ly |
-| DL-02 | Pastas raiz `web` e `server` | Concluído | Árvore do repositório |
-| DL-03 | Código obrigatório preservado na branch principal | Concluído | `main` remoto atualizado e histórico inicial preservado |
-| DL-04 | Front-end, back-end e DevOps documentados | Em andamento | README e documentação final |
+| DL-01 | Repositório público no GitHub | 007 | Planejado |
+| DL-02 | Subpastas `backend/` e `frontend/` com a resolução completa | 001 | Pastas criadas — conteúdo pendente |
+| DL-03 | Funcionalidades extras (ex.: upload de avatar) fora da branch principal | — | Não-goal |
+
+## Fora de escopo (herdado do projeto anterior, não se aplica ao Financy)
+
+CSV export, Cloudflare R2, deploy ao vivo, domínio de encurtamento de links.
