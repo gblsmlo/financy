@@ -8,3 +8,6 @@ playwright-report/
 test-results/
 *.log
 *.tsbuildinfo
+*.db
+*.db-journal
+backend/src/generated/

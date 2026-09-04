@@ -10,7 +10,7 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| FR-01 | Usuário pode criar conta e fazer login | 002 | Planejado |
+| FR-01 | Usuário pode criar conta e fazer login | 003 | Planejado |
 | FR-02 | Usuário só vê/gerencia suas próprias transações e categorias | 004 | Planejado |
 | FR-03 | Criar transação | 004 | Planejado |
 | FR-04 | Deletar transação | 004 | Planejado |
@@ -27,12 +27,12 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| NFR-01 | TypeScript | 001 | Planejado |
-| NFR-02 | GraphQL | 001 | Planejado |
-| NFR-03 | Prisma | 001 | Planejado |
-| NFR-04 | SQLite (Postgres é opção, não obrigatório) | 001 | Planejado |
-| NFR-05 | CORS habilitado | 001 | Planejado |
-| NFR-06 | `.env.example` com `JWT_SECRET` e `DATABASE_URL` | 001 | Planejado |
+| NFR-01 | TypeScript | 002 | Concluído |
+| NFR-02 | GraphQL | 002 | Concluído |
+| NFR-03 | Prisma | 002 | Concluído |
+| NFR-04 | SQLite (Postgres é opção, não obrigatório) | 002 | Concluído |
+| NFR-05 | CORS habilitado | 002 | Concluído |
+| NFR-06 | `.env.example` com `JWT_SECRET` e `DATABASE_URL` | 002 | Concluído |
 
 ## Não funcionais — front-end
 

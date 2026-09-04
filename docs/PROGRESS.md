@@ -2,14 +2,14 @@
 
 ## Estado atual
 
-**Fase 1 — Fundação e tooling** (não iniciada)
+**Fase 2 — Auth (BetterAuth)** (não iniciada)
 
 ## Fases
 
 | Fase | Tarefa | Estado |
 | --- | --- | --- |
 | 0. Limpeza do Brev.ly | [001](tasks/001-cleanup-brevly.md) | Concluída |
-| 1. Fundação e tooling | [002](tasks/002-foundation-tooling.md) | Não iniciada |
+| 1. Fundação e tooling | [002](tasks/002-foundation-tooling.md) | Concluída |
 | 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Não iniciada |
 | 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Não iniciada |
 | 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Não iniciada |
@@ -43,5 +43,28 @@
   `.env.example` (backend/frontend/test) e `tsconfig.json` raiz atualizados pro Financy.
 - `bun install`, `bun run lint`, `bun run typecheck`, `bun run test` e `bun run build` aprovados
   no esqueleto limpo. Evidências completas em [Task 001](tasks/001-cleanup-brevly.md).
-- Próxima ação: Fase 1 — Prisma + SQLite, Fastify + Mercurius, env schemas
-  ([Task 002](tasks/002-foundation-tooling.md)).
+
+### 2026-09-04 — Fase 1: fundação e tooling do back-end
+
+- `backend/prisma/schema.prisma`: modelos `User`, `Category`, `Transaction` (+ enum
+  `TransactionType`), SQLite, generator `prisma-client` gerando em `backend/src/generated/prisma`
+  (gitignored).
+- Primeira migration (`prisma/migrations/20260904192212_init`) criada e aplicada.
+- `backend/src/env-schema.ts` valida `JWT_SECRET`/`DATABASE_URL` (obrigatórias) e
+  `CORS_ORIGIN`/`NODE_ENV`/`PORT` (com default) no boot.
+- `backend/src/http/app.ts`: Fastify + `@fastify/cors` + `mercurius`, schema GraphQL mínimo
+  (`Query.health`) em `backend/src/graphql/schema.ts`.
+- Corrigido: `prisma.config.ts` gerado pelo `prisma init` não carrega `.env` sozinho — precisa
+  de `import 'dotenv/config'` no topo, senão `prisma migrate`/`generate` falham mesmo com
+  `DATABASE_URL` setado.
+- Removidas as skills de IA que o `prisma init` instala por padrão
+  (`.claude/skills`, `.windsurf/skills`, `.agents/skills`, `skills-lock.json`) — não fazem parte
+  do código do desafio.
+- `test/env-schema.ts` ganhou `DATABASE_URL`/`JWT_SECRET` (valores fixos de teste) pra
+  `createServerEnv()` não quebrar nos testes.
+- `biome.json` passou a ignorar `backend/src/generated` (client Prisma é código gerado).
+- Lint, typecheck, 2 testes e build aprovados na raiz. Smoke test manual do servidor real
+  confirmou `POST /graphql { health { status } }` → `{"data":{"health":{"status":"ok"}}}`.
+  Evidências completas em [Task 002](tasks/002-foundation-tooling.md).
+- Próxima ação: Fase 2 — BetterAuth (validar handler genérico sob Fastify/Bun primeiro; ver
+  risco técnico no [ADR 003](decisions/003-auth-betterauth.md)).

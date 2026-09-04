@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Auth: Session/Account/Verification entram no schema pela geração do BetterAuth
+// (Task 003 — docs/tasks/003-auth-betterauth.md), sem redigitar aqui.
+model User {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categories   Category[]
+  transactions Transaction[]
+}
+
+model Category {
+  id     String @id @default(cuid())
+  name   String
+  userId String
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  description   String
+  amountInCents Int
+  type          TransactionType
+  date          DateTime
+  categoryId    String
+  userId        String
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+}
