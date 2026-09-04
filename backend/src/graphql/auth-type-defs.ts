@@ -1,4 +1,4 @@
-export const typeDefs = /* GraphQL */ `
+export const authTypeDefs = /* GraphQL */ `
   type Health {
     status: String!
   }

@@ -4,8 +4,7 @@ import mercurius from 'mercurius'
 
 import { env } from '../env'
 import { buildContext } from '../graphql/context'
-import { resolvers } from '../graphql/resolvers'
-import { typeDefs } from '../graphql/type-defs'
+import { resolvers, typeDefs } from '../graphql/schema'
 
 export function buildApp() {
   const app = fastify()

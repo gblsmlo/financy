@@ -2,25 +2,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { buildApp } from '../http/app'
 import { prisma } from '../prisma'
-
-async function graphql(
-  app: ReturnType<typeof buildApp>,
-  query: string,
-  variables?: Record<string, unknown>,
-  token?: string,
-) {
-  const response = await app.inject({
-    method: 'POST',
-    url: '/graphql',
-    headers: token ? { authorization: `Bearer ${token}` } : undefined,
-    payload: { query, variables },
-  })
-
-  return response.json<{
-    data?: Record<string, unknown>
-    errors?: Array<{ message: string; extensions?: { code?: string } }>
-  }>()
-}
+import { graphqlRequest } from './test-helpers'
 
 const SIGNUP = /* GraphQL */ `
   mutation Signup($name: String!, $email: String!, $password: String!) {
@@ -64,7 +46,7 @@ describe('auth resolvers', () => {
   test('signup creates the user and returns a session token', async () => {
     const app = buildApp()
 
-    const result = await graphql(app, SIGNUP, {
+    const result = await graphqlRequest(app, SIGNUP, {
       name: 'Ada Lovelace',
       email: 'ada@example.com',
       password: 'super-secret-123',
@@ -84,8 +66,8 @@ describe('auth resolvers', () => {
       password: 'super-secret-123',
     }
 
-    await graphql(app, SIGNUP, variables)
-    const result = await graphql(app, SIGNUP, variables)
+    await graphqlRequest(app, SIGNUP, variables)
+    const result = await graphqlRequest(app, SIGNUP, variables)
 
     expect(result.data).toBeFalsy()
     expect(result.errors?.[0]?.message).toBeTruthy()
@@ -93,13 +75,13 @@ describe('auth resolvers', () => {
 
   test('login succeeds with correct credentials', async () => {
     const app = buildApp()
-    await graphql(app, SIGNUP, {
+    await graphqlRequest(app, SIGNUP, {
       name: 'Ada Lovelace',
       email: 'ada@example.com',
       password: 'super-secret-123',
     })
 
-    const result = await graphql(app, LOGIN, {
+    const result = await graphqlRequest(app, LOGIN, {
       email: 'ada@example.com',
       password: 'super-secret-123',
     })
@@ -111,13 +93,13 @@ describe('auth resolvers', () => {
 
   test('login rejects incorrect credentials', async () => {
     const app = buildApp()
-    await graphql(app, SIGNUP, {
+    await graphqlRequest(app, SIGNUP, {
       name: 'Ada Lovelace',
       email: 'ada@example.com',
       password: 'super-secret-123',
     })
 
-    const result = await graphql(app, LOGIN, {
+    const result = await graphqlRequest(app, LOGIN, {
       email: 'ada@example.com',
       password: 'wrong-password',
     })
@@ -129,7 +111,7 @@ describe('auth resolvers', () => {
   test('me is denied without a token', async () => {
     const app = buildApp()
 
-    const result = await graphql(app, ME)
+    const result = await graphqlRequest(app, ME)
 
     expect(result.data?.me).toBeNull()
     expect(result.errors?.[0]?.extensions?.code).toBe('UNAUTHENTICATED')
@@ -137,14 +119,14 @@ describe('auth resolvers', () => {
 
   test('me returns the authenticated user with a valid token', async () => {
     const app = buildApp()
-    const signup = await graphql(app, SIGNUP, {
+    const signup = await graphqlRequest(app, SIGNUP, {
       name: 'Ada Lovelace',
       email: 'ada@example.com',
       password: 'super-secret-123',
     })
     const token = (signup.data?.signup as { token: string }).token
 
-    const result = await graphql(app, ME, undefined, token)
+    const result = await graphqlRequest(app, ME, undefined, token)
 
     expect(result.errors).toBeUndefined()
     expect((result.data?.me as { email: string }).email).toBe('ada@example.com')

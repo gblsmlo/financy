@@ -11,15 +11,15 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
 | FR-01 | Usuário pode criar conta e fazer login | 003 | Concluído |
-| FR-02 | Usuário só vê/gerencia suas próprias transações e categorias | 004 | Planejado |
-| FR-03 | Criar transação | 004 | Planejado |
-| FR-04 | Deletar transação | 004 | Planejado |
-| FR-05 | Editar transação | 004 | Planejado |
-| FR-06 | Listar todas as transações | 004 | Planejado |
-| FR-07 | Criar categoria | 004 | Planejado |
-| FR-08 | Deletar categoria | 004 | Planejado |
-| FR-09 | Editar categoria | 004 | Planejado |
-| FR-10 | Listar todas as categorias | 004 | Planejado |
+| FR-02 | Usuário só vê/gerencia suas próprias transações e categorias | 004 | Concluído |
+| FR-03 | Criar transação | 004 | Concluído |
+| FR-04 | Deletar transação | 004 | Concluído |
+| FR-05 | Editar transação | 004 | Concluído |
+| FR-06 | Listar todas as transações | 004 | Concluído |
+| FR-07 | Criar categoria | 004 | Concluído |
+| FR-08 | Deletar categoria | 004 | Concluído |
+| FR-09 | Editar categoria | 004 | Concluído |
+| FR-10 | Listar todas as categorias | 004 | Concluído |
 | FR-11 | Front-end usa GraphQL para consultar a API, Vite como bundler | 005 | Planejado |
 | FR-12 | Front-end segue o mais fielmente possível o layout do Figma | 006 | Planejado |
 

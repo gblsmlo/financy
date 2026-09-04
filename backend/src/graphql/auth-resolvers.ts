@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql'
 
 import { auth } from '../auth'
 import type { GraphQLContext } from './context'
+import { requireUser } from './require-user'
 
 function toAuthError(error: unknown): GraphQLError {
   if (error instanceof APIError) {
@@ -14,7 +15,7 @@ function toAuthError(error: unknown): GraphQLError {
   throw error
 }
 
-export const resolvers = {
+export const authResolvers = {
   Mutation: {
     async login(_parent: unknown, args: { email: string; password: string }) {
       try {
@@ -51,11 +52,7 @@ export const resolvers = {
     health: () => ({ status: 'ok' }),
 
     me(_parent: unknown, _args: unknown, context: GraphQLContext) {
-      if (!context.user) {
-        throw new GraphQLError('Não autenticado.', { extensions: { code: 'UNAUTHENTICATED' } })
-      }
-
-      return context.user
+      return requireUser(context)
     },
   },
 }

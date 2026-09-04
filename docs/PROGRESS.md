@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-**Fase 3 — API de domínio (transações/categorias)** (não iniciada)
+**Fase 4 — Fundação do front-end** (não iniciada)
 
 ## Fases
 
@@ -11,7 +11,7 @@
 | 0. Limpeza do Brev.ly | [001](tasks/001-cleanup-brevly.md) | Concluída |
 | 1. Fundação e tooling | [002](tasks/002-foundation-tooling.md) | Concluída |
 | 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Concluída |
-| 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Não iniciada |
+| 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Concluída |
 | 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Não iniciada |
 | 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Não iniciada |
 | 6. Aceitação e entrega | [007](tasks/007-acceptance-delivery.md) | Não iniciada |
@@ -96,3 +96,32 @@
   Evidências completas em [Task 003](tasks/003-auth-betterauth.md).
 - Próxima ação: Fase 3 — CRUD GraphQL de transações e categorias, sempre restrito ao usuário
   autenticado ([Task 004](tasks/004-domain-api.md)).
+
+### 2026-09-04 — Fase 3: API de domínio (transações e categorias)
+
+- Schema GraphQL de `Category`/`Transaction` + mutations `create/update/delete` e queries
+  `categories`/`transactions`, em `backend/src/graphql/{categories,transactions}/`. Arquivos de
+  auth renomeados (`auth-type-defs.ts`, `auth-resolvers.ts`) e combinados num `schema.ts` que
+  junta type-defs (`extend type Query/Mutation`) e resolvers dos três domínios.
+- Todo resolver de domínio exige `context.user` (helper `require-user.ts`, reaproveitado do `me`
+  da Fase 2) e restringe leitura/escrita a `userId` do chamador. `update`/`delete` usam
+  `updateMany`/`deleteMany` com `where: { id, userId }` — uma query só, `count === 0` vira
+  `NOT_FOUND`, sem revelar se o registro existe pra outro usuário.
+- Achado de segurança durante a escrita: a FK do SQLite em `Transaction.categoryId` só garante
+  que a categoria existe — não que é do usuário. Sem checar `Category.findFirst({ id, userId })`
+  antes de criar/editar uma transação, um usuário conseguiria linkar a categoria de outra pessoa.
+  Adicionado o check explícito.
+- Erros conhecidos do Prisma (nome de categoria duplicado, categoria com transação vinculada por
+  causa do `onDelete: Restrict`) traduzidos pra `GraphQLError` com código `CONFLICT`
+  (`backend/src/graphql/prisma-errors.ts`), em vez de vazar a mensagem crua do SQLite.
+- Validação de entrada com Zod (nome não vazio, descrição não vazia, valor positivo, data ISO).
+- `backend/src/graphql/test-helpers.ts` extraído dos testes de auth pra ser reaproveitado pelos
+  3 arquivos de teste de resolver.
+- 25 testes no total (17 novos): CRUD de categoria/transação, nome duplicado, categoria com
+  transação vinculada, acesso de outro usuário negado em update/delete, listagem restrita ao
+  dono, entrada inválida rejeitada.
+- Lint, typecheck, 25 testes e build aprovados. Smoke test manual do servidor real: signup →
+  criar categoria → criar transação → listar ambos, tudo autenticado.
+  Evidências completas em [Task 004](tasks/004-domain-api.md).
+- Próxima ação: Fase 4 — fundação do front-end (Vite + React + TypeScript, cliente GraphQL)
+  ([Task 005](tasks/005-frontend-foundation.md)).
