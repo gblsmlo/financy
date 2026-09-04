@@ -10,7 +10,7 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| FR-01 | Usuário pode criar conta e fazer login | 003 | Planejado |
+| FR-01 | Usuário pode criar conta e fazer login | 003 | Concluído |
 | FR-02 | Usuário só vê/gerencia suas próprias transações e categorias | 004 | Planejado |
 | FR-03 | Criar transação | 004 | Planejado |
 | FR-04 | Deletar transação | 004 | Planejado |

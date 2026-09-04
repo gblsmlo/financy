@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-**Fase 2 — Auth (BetterAuth)** (não iniciada)
+**Fase 3 — API de domínio (transações/categorias)** (não iniciada)
 
 ## Fases
 
@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 0. Limpeza do Brev.ly | [001](tasks/001-cleanup-brevly.md) | Concluída |
 | 1. Fundação e tooling | [002](tasks/002-foundation-tooling.md) | Concluída |
-| 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Não iniciada |
+| 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Concluída |
 | 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Não iniciada |
 | 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Não iniciada |
 | 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Não iniciada |
@@ -66,5 +66,33 @@
 - Lint, typecheck, 2 testes e build aprovados na raiz. Smoke test manual do servidor real
   confirmou `POST /graphql { health { status } }` → `{"data":{"health":{"status":"ok"}}}`.
   Evidências completas em [Task 002](tasks/002-foundation-tooling.md).
-- Próxima ação: Fase 2 — BetterAuth (validar handler genérico sob Fastify/Bun primeiro; ver
-  risco técnico no [ADR 003](decisions/003-auth-betterauth.md)).
+
+### 2026-09-04 — Fase 2: auth com BetterAuth
+
+- Revisado o risco técnico do ADR 003 lendo o código fonte do BetterAuth: descartado montar rota
+  HTTP no Fastify **e** descartado o plugin `jwt` (usa JWKS próprio, não uma secret
+  compartilhada). Decisão final: API programática (`auth.api.signUpEmail/signInEmail/getSession`)
+  + `secret` nativo (mapeado de `JWT_SECRET`) + plugin `bearer`. ADR 003 reescrito.
+  Prisma schema ganhou `Session`/`Account`/`Verification` seguindo o core schema exato do
+  BetterAuth 1.7.2; migration `20260904193202_add_betterauth_tables`.
+- Mutations `signup`/`login` e query `me` (protegida) em
+  `backend/src/graphql/{type-defs,resolvers,context}.ts`; contexto do Mercurius resolve
+  `context.user` via `auth.api.getSession` a partir do header `Authorization`.
+- 3 bugs de ambiente encontrados e corrigidos, documentados nos ADRs 001–002 e na
+  [Task 003](tasks/003-auth-betterauth.md):
+  1. O client `prisma-client` (Prisma 7) exige um driver adapter explícito — `@prisma/adapter-better-sqlite3`
+     não roda sob Bun (`ERR_DLOPEN_FAILED`); trocado por `@prisma/adapter-libsql`.
+  2. `mercurius@16.10.0` só suporta `graphql@^16`; `graphql@17` (ESM-only) quebra o
+     `require('graphql')` interno do mercurius sob Bun ao formatar um erro GraphQL — só aparece
+     quando um resolver realmente lança erro. Fixado `graphql` em `16.14.2`.
+  3. `bun test --isolate` isola módulos por arquivo de um jeito que invalidou migrar o banco de
+     teste via import do Prisma Client dentro do preload (tabelas “desapareciam” pros arquivos de
+     teste mesmo com o client emitindo sucesso). Resolvido rodando `prisma migrate deploy` como
+     processo filho de verdade no preload, banco de teste fixo em `backend/prisma/test.db`.
+- `backend/src/graphql/resolvers.test.ts`: 6 testes (signup ok/duplicado, login ok/errado, `me`
+  nega sem token / autoriza com token).
+- Lint, typecheck, 8 testes (Fases 1+2) e build aprovados. Smoke test manual do servidor real:
+  signup → token → `me` autoriza; sem token → `UNAUTHENTICATED`.
+  Evidências completas em [Task 003](tasks/003-auth-betterauth.md).
+- Próxima ação: Fase 3 — CRUD GraphQL de transações e categorias, sempre restrito ao usuário
+  autenticado ([Task 004](tasks/004-domain-api.md)).

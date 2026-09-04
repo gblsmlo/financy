@@ -7,18 +7,72 @@ datasource db {
   provider = "sqlite"
 }
 
-// Auth: Session/Account/Verification entram no schema pela geração do BetterAuth
-// (Task 003 — docs/tasks/003-auth-betterauth.md), sem redigitar aqui.
+// User/Session/Account/Verification seguem o core schema do BetterAuth
+// (better-auth/dist/db/schema em @better-auth/core, v1.7.2) — não são livres pra reformatar,
+// o adapter Prisma do BetterAuth espera esses nomes e tipos de campo.
 model User {
-  id    String @id @default(cuid())
-  name  String
-  email String @unique
+  id            String  @id @default(cuid())
+  name          String
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  image         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  sessions     Session[]
+  accounts     Account[]
   categories   Category[]
   transactions Transaction[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id         String @id @default(cuid())
+  providerId String
+  issuer     String
+  accountId  String
+  userId     String
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([identifier])
 }
 
 model Category {
