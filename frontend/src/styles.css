@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Style Guide do Figma — verde de marca é a única cor fora da escala padrão do
+     Tailwind (blue/purple/pink/red/orange/yellow/green/gray batem com o default). */
+  --color-brand-dark: #124b2b;
+  --color-brand-base: #1f6f43;
+
+  --color-success: #19ad70;
+  --color-danger: #ef4444;
+}

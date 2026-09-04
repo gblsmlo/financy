@@ -1,0 +1,108 @@
+type Health {
+  status: String!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Query {
+  health: Health!
+  me: User
+}
+
+type Mutation {
+  signup(name: String!, email: String!, password: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+}
+
+enum CategoryColor {
+  BLUE
+  PURPLE
+  PINK
+  RED
+  ORANGE
+  YELLOW
+  GREEN
+}
+
+type Category {
+  id: ID!
+  name: String!
+  description: String
+  icon: String!
+  color: CategoryColor!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CategoryInput {
+  name: String!
+  description: String
+  icon: String!
+  color: CategoryColor!
+}
+
+extend type Query {
+  categories: [Category!]!
+}
+
+extend type Mutation {
+  createCategory(input: CategoryInput!): Category!
+  updateCategory(id: ID!, input: CategoryInput!): Category!
+  deleteCategory(id: ID!): Boolean!
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+type Transaction {
+  id: ID!
+  description: String!
+  amountInCents: Int!
+  type: TransactionType!
+  date: String!
+  category: Category!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateTransactionInput {
+  description: String!
+  amountInCents: Int!
+  type: TransactionType!
+  date: String!
+  categoryId: ID!
+}
+
+input UpdateTransactionInput {
+  description: String
+  amountInCents: Int
+  type: TransactionType
+  date: String
+  categoryId: ID
+}
+
+extend type Query {
+  transactions: [Transaction!]!
+}
+
+extend type Mutation {
+  createTransaction(input: CreateTransactionInput!): Transaction!
+  updateTransaction(id: ID!, input: UpdateTransactionInput!): Transaction!
+  deleteTransaction(id: ID!): Boolean!
+}
+
+extend type Mutation {
+  updateProfile(name: String!): User!
+  logout: Boolean!
+}

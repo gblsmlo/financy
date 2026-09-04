@@ -5,7 +5,7 @@ TCC da Pós-Graduação Rocketseat (Expansão de Habilidades — Desafio Prátic
 
 ## Estado do projeto
 
-**Fase atual:** 0 — Limpeza e fundação.
+**Fase atual:** 4 — Fundação do front-end.
 
 O acompanhamento detalhado está em [docs/PROGRESS.md](docs/PROGRESS.md). A rastreabilidade entre
 o enunciado do desafio e a implementação está em [docs/requirements.md](docs/requirements.md).
@@ -36,6 +36,8 @@ Decisões de arquitetura estão em [docs/decisions](docs/decisions).
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 bun install
+bun run db:migrate   # cria backend/dev.db e gera o Prisma Client
+bun run codegen      # gera os tipos GraphQL do front a partir do schema do back-end
 ```
 
 As chaves obrigatórias estão documentadas nos dois arquivos `.env.example`. Segredos e arquivos
@@ -55,6 +57,7 @@ As chaves obrigatórias estão documentadas nos dois arquivos `.env.example`. Se
 | `bun run test:frontend` | Executa somente os testes do front-end |
 | `bun run test:e2e` | Executa os testes end-to-end (Playwright) |
 | `bun run build` | Gera os artefatos de produção |
+| `bun run codegen` | Regenera o schema exportado do back-end e os tipos GraphQL do front-end |
 
 ## Escopo de correção
 

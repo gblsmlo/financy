@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "bun run --parallel --workspaces build",
+    "codegen": "bun run --cwd backend schema:print && bun run --cwd frontend codegen",
     "db:generate": "bun run --cwd backend db:generate",
     "db:migrate": "bun run --cwd backend db:migrate",
     "dev": "bun run --parallel --workspaces dev",

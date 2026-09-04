@@ -20,7 +20,7 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 | FR-08 | Deletar categoria | 004 | Concluído |
 | FR-09 | Editar categoria | 004 | Concluído |
 | FR-10 | Listar todas as categorias | 004 | Concluído |
-| FR-11 | Front-end usa GraphQL para consultar a API, Vite como bundler | 005 | Planejado |
+| FR-11 | Front-end usa GraphQL para consultar a API, Vite como bundler | 005 | Concluído |
 | FR-12 | Front-end segue o mais fielmente possível o layout do Figma | 006 | Planejado |
 
 ## Não funcionais — back-end
@@ -38,11 +38,11 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| NFR-07 | TypeScript | 005 | Planejado |
-| NFR-08 | React | 005 | Planejado |
-| NFR-09 | Vite sem framework | 005 | Planejado |
-| NFR-10 | GraphQL | 005 | Planejado |
-| NFR-11 | `.env.example` com `VITE_BACKEND_URL` | 005 | Planejado |
+| NFR-07 | TypeScript | 005 | Concluído |
+| NFR-08 | React | 005 | Concluído |
+| NFR-09 | Vite sem framework | 005 | Concluído |
+| NFR-10 | GraphQL | 005 | Concluído |
+| NFR-11 | `.env.example` com `VITE_BACKEND_URL` | 005 | Concluído |
 
 ## Flexíveis (adotados — ver [ADR 004](decisions/004-frontend-data-layer.md))
 

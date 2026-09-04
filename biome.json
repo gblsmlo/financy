@@ -6,7 +6,8 @@
       "!**/dist",
       "!**/node_modules",
       "!**/routeTree.gen.ts",
-      "!backend/src/generated"
+      "!backend/src/generated",
+      "!frontend/src/gql"
     ]
   },
   "formatter": {
@@ -18,6 +19,11 @@
     "formatter": {
       "quoteStyle": "single",
       "semicolons": "asNeeded"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "linter": {

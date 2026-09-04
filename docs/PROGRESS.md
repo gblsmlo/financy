@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-**Fase 4 — Fundação do front-end** (não iniciada)
+**Fase 5 — Páginas e features do front-end** (não iniciada)
 
 ## Fases
 
@@ -12,7 +12,7 @@
 | 1. Fundação e tooling | [002](tasks/002-foundation-tooling.md) | Concluída |
 | 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Concluída |
 | 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Concluída |
-| 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Não iniciada |
+| 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Concluída |
 | 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Não iniciada |
 | 6. Aceitação e entrega | [007](tasks/007-acceptance-delivery.md) | Não iniciada |
 
@@ -139,5 +139,25 @@
   SQLite valida cada FK durante o cascade, não no fim. Só afetou a limpeza dos testes por ora
   (não existe "apagar conta" ainda); documentado em Task 004 pra quando existir.
 - Lint, typecheck, 30 testes e build aprovados de novo depois do adendo.
-- Próxima ação: Fase 4 — fundação do front-end (Vite + React + TypeScript, cliente GraphQL)
-  ([Task 005](tasks/005-frontend-foundation.md)).
+
+### 2026-09-04 — Fase 4: fundação do front-end
+
+- Vite + React 19 + TypeScript (já existia do Fase 0) ganhou `@tanstack/react-router`
+  (file-based, ver [ADR 005](decisions/005-frontend-router.md)), Tailwind v4 (`@tailwindcss/vite`,
+  tema CSS-first sem `tailwind.config.js`) e componentes no estilo shadcn escritos à mão
+  (Radix + `cva`, sem CLI interativa).
+- `graphql-request` + React Query configurados; `backend/src/print-schema.ts` (script
+  `schema:print`) exporta o SDL pra `backend/schema.graphql`, versionado, pro `graphql-codegen`
+  do front (preset `client`) não depender do back-end rodando pra gerar tipo.
+- 6 páginas roteadas: `/login`, `/cadastro` (layout `_guest`, bate de volta pra `/` se já
+  logado) e `/`, `/transacoes`, `/categorias`, `/perfil` (layout `_authenticated`, redireciona
+  pra `/login` sem sessão) — proteção via `beforeLoad` + `queryClient.ensureQueryData` na query
+  `me`. Sessão guardada como bearer token em `localStorage`.
+- Smoke test end-to-end no browser real (back-end + front-end rodando juntos): cadastro →
+  dashboard com dado de verdade → navega entre as 4 páginas autenticadas sem reload → edita nome
+  no Perfil → logout → login de novo → tentar `/login` autenticado bate pra `/`. Zero erro no
+  console.
+- Lint, typecheck e build aprovados nos dois workspaces.
+  Evidências completas em [Task 005](tasks/005-frontend-foundation.md).
+- Próxima ação: Fase 5 — páginas e features do front-end com fidelidade visual completa ao
+  Figma (formulários de transação/categoria, modais, filtros) ([Task 006](tasks/006-frontend-features.md)).

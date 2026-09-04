@@ -17,6 +17,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "dev": "bun --env-file=.env --watch src/server.ts",
+    "schema:print": "bun --env-file=.env src/print-schema.ts",
     "start": "bun dist/server.js",
     "test": "bun test --isolate --preload ../test/setup.ts .",
     "typecheck": "tsc --noEmit -p tsconfig.json"

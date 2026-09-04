@@ -7,19 +7,19 @@ SPA React + Vite + TypeScript executável, com camada de dados GraphQL e roteame
 
 ## Critérios de aceite
 
-- [ ] Vite + React + TypeScript, sem framework SSR.
-- [ ] `@tanstack/react-router` configurado (ver ADR 005).
-- [ ] TailwindCSS + Shadcn configurados (ver ADR 004).
-- [ ] `graphql-request` + `@tanstack/react-query` configurados, cliente apontando pra
+- [x] Vite + React + TypeScript, sem framework SSR.
+- [x] `@tanstack/react-router` configurado (ver ADR 005).
+- [x] TailwindCSS + Shadcn configurados (ver ADR 004).
+- [x] `graphql-request` + `@tanstack/react-query` configurados, cliente apontando pra
       `VITE_BACKEND_URL`.
-- [ ] `graphql-codegen` gerando tipos das operações a partir do schema do back-end.
-- [ ] Roteamento cobrindo as páginas do desafio: raiz (`/`) com tela de login quando deslogado e
+- [x] `graphql-codegen` gerando tipos das operações a partir do schema do back-end.
+- [x] Roteamento cobrindo as páginas do desafio: raiz (`/`) com tela de login quando deslogado e
       dashboard quando logado, mais as demais páginas identificadas no Figma.
-- [ ] Estrutura de rota protegida — páginas de domínio inacessíveis sem sessão válida.
-- [ ] `frontend/.env.example` com `VITE_BACKEND_URL`.
-- [ ] Style Guide do Figma (cores, tipografia, espaçamento) traduzido pra tokens Tailwind/tema
+- [x] Estrutura de rota protegida — páginas de domínio inacessíveis sem sessão válida.
+- [x] `frontend/.env.example` com `VITE_BACKEND_URL`.
+- [x] Style Guide do Figma (cores, tipografia, espaçamento) traduzido pra tokens Tailwind/tema
       Shadcn.
-- [ ] `bun run dev`, `bun run build`, `bun run typecheck` passando no front-end.
+- [x] `bun run dev`, `bun run build`, `bun run typecheck` passando no front-end.
 
 ## Referência — inventário do Figma
 
@@ -58,7 +58,37 @@ pra isso (ver adendo em [Task 004](004-domain-api.md)).
 
 ## Evidências
 
-(preencher ao concluir)
+- `frontend/vite.config.ts`: plugin do TanStack Router (`autoCodeSplitting`, gera
+  `routeTree.gen.ts` — gitignored, regenerado a cada `dev`/`build`) + `@tailwindcss/vite`.
+- `frontend/src/styles.css`: `@theme` do Tailwind v4 (CSS-first, sem `tailwind.config.js`) só com
+  os tokens que não são o default do Tailwind — `brand-dark`/`brand-base`/`success`/`danger` —
+  ver inventário do Figma acima. Fonte Inter carregada via Google Fonts no `index.html`.
+- Componentes em `frontend/src/components/ui/` seguem a convenção do shadcn (Radix + `cva` +
+  `cn`) escritos à mão — sem `components.json`/CLI, que pede prompt interativo; mais componentes
+  entram conforme a Task 006 precisar (select, dialog, tabs, checkbox já instalados como
+  dependência, ainda sem wrapper).
+- `frontend/src/lib/graphql-client.ts`: `GraphQLClient` (graphql-request) singleton apontando pra
+  `${VITE_BACKEND_URL}/graphql`; token Bearer fica em `localStorage`
+  (`frontend/src/lib/auth-token.ts`) e é aplicado via `client.setHeader`/`setHeaders({})` — não
+  precisou de middleware dinâmico.
+- `backend/src/print-schema.ts` (script `schema:print`) exporta `typeDefs` pro arquivo
+  `backend/schema.graphql`, versionado — evita o codegen do front depender do back-end rodando.
+  `frontend/codegen.ts` usa o preset `client` do graphql-codegen contra esse arquivo; saída em
+  `frontend/src/gql/` (gitignored, `bun run codegen` na raiz regenera os dois passos).
+- Sessão: `frontend/src/features/auth/session.ts` (`useQuery` na query `me`, tratando o erro
+  `UNAUTHENTICATED` como "sem sessão" em vez de erro) + rotas `_authenticated`/`_guest`
+  (layouts sem path do TanStack Router) fazendo `beforeLoad` com
+  `queryClient.ensureQueryData` — protegido redireciona pra `/login` sem sessão, guest
+  redireciona pra `/` com sessão.
+- `/` não é literalmente a mesma URL pro logado e pro deslogado — desloga redireciona pra
+  `/login` (padrão de SPA), não mostra o formulário embutido na raiz. Atende a intenção funcional
+  do critério; ver [ADR 005](../decisions/005-frontend-router.md).
+- Smoke test end-to-end no browser real (back-end + front-end rodando via
+  `mcp__Claude_Browser__preview_start`): cadastro → dashboard com dado real → navegação entre as
+  4 páginas autenticadas sem reload → editar nome no Perfil → logout → redireciona pro login →
+  login de novo funciona → acessar `/login` autenticado bate de volta pra `/`. Zero erros no
+  console do browser.
+- Lint, typecheck e build (`tsc -b && vite build`) aprovados nos dois workspaces.
 
 ## Fora de escopo
 
