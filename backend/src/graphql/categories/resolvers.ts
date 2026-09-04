@@ -5,13 +5,20 @@ import type { GraphQLContext } from '../context'
 import { notFoundError, rethrowPrismaError } from '../prisma-errors'
 import { requireUser } from '../require-user'
 
-const nameSchema = z.string().trim().min(1, 'Nome é obrigatório.').max(100)
+const categoryColors = ['BLUE', 'PURPLE', 'PINK', 'RED', 'ORANGE', 'YELLOW', 'GREEN'] as const
 
-function parseName(name: string): string {
-  const result = nameSchema.safeParse(name)
+const categoryInputSchema = z.object({
+  color: z.enum(categoryColors),
+  description: z.string().trim().max(200).optional(),
+  icon: z.string().trim().min(1, 'Ícone é obrigatório.'),
+  name: z.string().trim().min(1, 'Nome é obrigatório.').max(100),
+})
+
+function parseInput(input: unknown): z.infer<typeof categoryInputSchema> {
+  const result = categoryInputSchema.safeParse(input)
 
   if (!result.success) {
-    throw new GraphQLError(result.error.issues[0]?.message ?? 'Nome inválido.', {
+    throw new GraphQLError(result.error.issues[0]?.message ?? 'Entrada inválida.', {
       extensions: { code: 'BAD_USER_INPUT' },
     })
   }
@@ -21,12 +28,12 @@ function parseName(name: string): string {
 
 export const categoryResolvers = {
   Mutation: {
-    async createCategory(_parent: unknown, args: { name: string }, context: GraphQLContext) {
+    async createCategory(_parent: unknown, args: { input: unknown }, context: GraphQLContext) {
       const user = requireUser(context)
-      const name = parseName(args.name)
+      const input = parseInput(args.input)
 
       try {
-        return await prisma.category.create({ data: { name, userId: user.id } })
+        return await prisma.category.create({ data: { ...input, userId: user.id } })
       } catch (error) {
         rethrowPrismaError(error, { uniqueConstraint: 'Você já tem uma categoria com esse nome.' })
       }
@@ -52,16 +59,16 @@ export const categoryResolvers = {
 
     async updateCategory(
       _parent: unknown,
-      args: { id: string; name: string },
+      args: { id: string; input: unknown },
       context: GraphQLContext,
     ) {
       const user = requireUser(context)
-      const name = parseName(args.name)
+      const input = parseInput(args.input)
 
       try {
         const { count } = await prisma.category.updateMany({
           where: { id: args.id, userId: user.id },
-          data: { name },
+          data: input,
         })
 
         if (count === 0) throw notFoundError('Categoria não encontrada.')

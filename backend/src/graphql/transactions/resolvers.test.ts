@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { buildApp } from '../../http/app'
 import { prisma } from '../../prisma'
-import { createTestUser, graphqlRequest } from '../test-helpers'
+import { createTestUser, graphqlRequest, resetDatabase } from '../test-helpers'
 
 const CREATE_CATEGORY = /* GraphQL */ `
-  mutation CreateCategory($name: String!) {
-    createCategory(name: $name) {
+  mutation CreateCategory($input: CategoryInput!) {
+    createCategory(input: $input) {
       id
     }
   }
@@ -56,13 +56,14 @@ const TRANSACTIONS = /* GraphQL */ `
 `
 
 async function createCategory(app: ReturnType<typeof buildApp>, token: string, name = 'Salário') {
-  const result = await graphqlRequest(app, CREATE_CATEGORY, { name }, token)
+  const input = { color: 'GREEN', icon: 'briefcase', name }
+  const result = await graphqlRequest(app, CREATE_CATEGORY, { input }, token)
   return (result.data?.createCategory as { id: string }).id
 }
 
 describe('transaction resolvers', () => {
   beforeEach(async () => {
-    await prisma.user.deleteMany()
+    await resetDatabase()
   })
 
   test('transactions is denied without a token', async () => {

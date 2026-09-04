@@ -14,9 +14,10 @@ function toHeaders(rawHeaders: FastifyRequest['headers']): Headers {
 }
 
 export async function buildContext(request: FastifyRequest) {
-  const session = await auth.api.getSession({ headers: toHeaders(request.headers) })
+  const headers = toHeaders(request.headers)
+  const session = await auth.api.getSession({ headers })
 
-  return { user: session?.user ?? null }
+  return { headers, user: session?.user ?? null }
 }
 
 export type GraphQLContext = Awaited<ReturnType<typeof buildContext>>

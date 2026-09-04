@@ -76,9 +76,12 @@ model Verification {
 }
 
 model Category {
-  id     String @id @default(cuid())
-  name   String
-  userId String
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  icon        String
+  color       String
+  userId      String
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]

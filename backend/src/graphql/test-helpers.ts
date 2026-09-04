@@ -1,4 +1,15 @@
 import type { buildApp } from '../http/app'
+import { prisma } from '../prisma'
+
+// Transaction.categoryId is RESTRICT: SQLite checks FK constraints as each
+// row is deleted, not once at the end of the cascade, so deleting a user
+// straight away can fail if their transactions haven't been removed yet —
+// delete children before parents instead of relying on cascade to order it.
+export async function resetDatabase() {
+  await prisma.transaction.deleteMany()
+  await prisma.category.deleteMany()
+  await prisma.user.deleteMany()
+}
 
 export async function graphqlRequest(
   app: ReturnType<typeof buildApp>,

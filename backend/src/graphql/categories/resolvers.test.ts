@@ -2,20 +2,23 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { buildApp } from '../../http/app'
 import { prisma } from '../../prisma'
-import { createTestUser, graphqlRequest } from '../test-helpers'
+import { createTestUser, graphqlRequest, resetDatabase } from '../test-helpers'
 
 const CREATE_CATEGORY = /* GraphQL */ `
-  mutation CreateCategory($name: String!) {
-    createCategory(name: $name) {
+  mutation CreateCategory($input: CategoryInput!) {
+    createCategory(input: $input) {
       id
       name
+      description
+      icon
+      color
     }
   }
 `
 
 const UPDATE_CATEGORY = /* GraphQL */ `
-  mutation UpdateCategory($id: ID!, $name: String!) {
-    updateCategory(id: $id, name: $name) {
+  mutation UpdateCategory($id: ID!, $input: CategoryInput!) {
+    updateCategory(id: $id, input: $input) {
       id
       name
     }
@@ -37,9 +40,18 @@ const CATEGORIES = /* GraphQL */ `
   }
 `
 
+function categoryInput(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    color: 'GREEN',
+    icon: 'briefcase',
+    name: 'Salário',
+    ...overrides,
+  }
+}
+
 describe('category resolvers', () => {
   beforeEach(async () => {
-    await prisma.user.deleteMany()
+    await resetDatabase()
   })
 
   test('categories is denied without a token', async () => {
@@ -55,18 +67,32 @@ describe('category resolvers', () => {
     const app = buildApp()
     const { token } = await createTestUser(app)
 
-    const result = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, token)
+    const result = await graphqlRequest(
+      app,
+      CREATE_CATEGORY,
+      { input: categoryInput({ description: 'Renda mensal' }) },
+      token,
+    )
 
     expect(result.errors).toBeUndefined()
-    expect((result.data?.createCategory as { name: string }).name).toBe('Salário')
+    const category = result.data?.createCategory as {
+      name: string
+      description: string
+      icon: string
+      color: string
+    }
+    expect(category.name).toBe('Salário')
+    expect(category.description).toBe('Renda mensal')
+    expect(category.icon).toBe('briefcase')
+    expect(category.color).toBe('GREEN')
   })
 
   test('createCategory rejects a duplicate name for the same user', async () => {
     const app = buildApp()
     const { token } = await createTestUser(app)
 
-    await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, token)
-    const result = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, token)
+    await graphqlRequest(app, CREATE_CATEGORY, { input: categoryInput() }, token)
+    const result = await graphqlRequest(app, CREATE_CATEGORY, { input: categoryInput() }, token)
 
     expect(result.data).toBeFalsy()
     expect(result.errors?.[0]?.extensions?.code).toBe('CONFLICT')
@@ -76,7 +102,12 @@ describe('category resolvers', () => {
     const app = buildApp()
     const { token } = await createTestUser(app)
 
-    const result = await graphqlRequest(app, CREATE_CATEGORY, { name: '   ' }, token)
+    const result = await graphqlRequest(
+      app,
+      CREATE_CATEGORY,
+      { input: categoryInput({ name: '   ' }) },
+      token,
+    )
 
     expect(result.data).toBeFalsy()
     expect(result.errors?.[0]?.extensions?.code).toBe('BAD_USER_INPUT')
@@ -87,8 +118,13 @@ describe('category resolvers', () => {
     const owner = await createTestUser(app)
     const other = await createTestUser(app)
 
-    await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, owner.token)
-    await graphqlRequest(app, CREATE_CATEGORY, { name: 'Aluguel' }, other.token)
+    await graphqlRequest(app, CREATE_CATEGORY, { input: categoryInput() }, owner.token)
+    await graphqlRequest(
+      app,
+      CREATE_CATEGORY,
+      { input: categoryInput({ name: 'Aluguel' }) },
+      other.token,
+    )
 
     const result = await graphqlRequest(app, CATEGORIES, undefined, owner.token)
 
@@ -102,13 +138,18 @@ describe('category resolvers', () => {
     const owner = await createTestUser(app)
     const attacker = await createTestUser(app)
 
-    const created = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, owner.token)
+    const created = await graphqlRequest(
+      app,
+      CREATE_CATEGORY,
+      { input: categoryInput() },
+      owner.token,
+    )
     const categoryId = (created.data?.createCategory as { id: string }).id
 
     const result = await graphqlRequest(
       app,
       UPDATE_CATEGORY,
-      { id: categoryId, name: 'Hackeado' },
+      { id: categoryId, input: categoryInput({ name: 'Hackeado' }) },
       attacker.token,
     )
 
@@ -124,7 +165,12 @@ describe('category resolvers', () => {
     const owner = await createTestUser(app)
     const attacker = await createTestUser(app)
 
-    const created = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, owner.token)
+    const created = await graphqlRequest(
+      app,
+      CREATE_CATEGORY,
+      { input: categoryInput() },
+      owner.token,
+    )
     const categoryId = (created.data?.createCategory as { id: string }).id
 
     const result = await graphqlRequest(app, DELETE_CATEGORY, { id: categoryId }, attacker.token)
@@ -140,7 +186,7 @@ describe('category resolvers', () => {
     const app = buildApp()
     const { token } = await createTestUser(app)
 
-    const created = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, token)
+    const created = await graphqlRequest(app, CREATE_CATEGORY, { input: categoryInput() }, token)
     const categoryId = (created.data?.createCategory as { id: string }).id
 
     const result = await graphqlRequest(app, DELETE_CATEGORY, { id: categoryId }, token)
@@ -154,7 +200,7 @@ describe('category resolvers', () => {
     const app = buildApp()
     const { token, user } = await createTestUser(app)
 
-    const created = await graphqlRequest(app, CREATE_CATEGORY, { name: 'Salário' }, token)
+    const created = await graphqlRequest(app, CREATE_CATEGORY, { input: categoryInput() }, token)
     const categoryId = (created.data?.createCategory as { id: string }).id
 
     await prisma.transaction.create({

@@ -16,6 +16,36 @@ CRUD completo de transações e categorias via GraphQL, sempre restrito ao usuá
 - [x] Testes de resolver cobrindo os 8 requisitos funcionais (FR-03 a FR-10 do
       [requirements.md](../requirements.md)) e o isolamento por usuário (FR-02).
 
+## Adendo — achados do Figma (fidelidade visual, FR-12)
+
+Duplicata do Figma inspecionada (ver [Task 005](005-frontend-foundation.md)) depois desta task já
+"concluída". Dois achados batiam direto no schema/resolvers já escritos aqui, corrigidos no mesmo
+dia:
+
+- O modal "Nova categoria" tem ícone (14 opções) e cor (7 opções fixas) além de nome e descrição
+  opcional — `Category` ganhou `icon: String!`, `color: CategoryColor!` (enum
+  BLUE/PURPLE/PINK/RED/ORANGE/YELLOW/GREEN) e `description: String?`.
+  `createCategory`/`updateCategory` passaram a receber `CategoryInput` em vez de argumentos soltos.
+- A página "Perfil" edita nome e tem botão de sair — não existia mutation pra isso. Adicionado
+  `updateProfile(name)` (via `auth.api.updateUser`) e `logout` (via `auth.api.signOut`) em
+  `backend/src/graphql/account/`.
+
+Migration `20260904224543_category_icon_color_description`. 5 testes novos (3 categoria com
+ícone/cor, 2 account). Filtro/busca/paginação da página de Transações e os totais do Dashboard
+ficam por conta do front (Task 006) computados em cima das listas completas que `transactions`/
+`categories` já retornam — sem paginação, dataset pessoal pequeno, sem necessidade de mudar o
+schema GraphQL pra isso.
+
+**Pegadinha de schema encontrada nos testes:** `Transaction.categoryId` é `onDelete: Restrict`
+enquanto `Category.userId`/`Transaction.userId` são `onDelete: Cascade`. Apagar um `User` que
+ainda tem transação vinculada a uma categoria pode falhar com violação de FK — o SQLite checa
+cada FK conforme a linha é apagada dentro do cascade, não no fim da operação inteira, então nada
+garante que a Transaction some antes da Category ser cascade-apagada. Não afeta nenhum resolver
+hoje (não existe "apagar conta"), mas pegou a limpeza dos testes (`prisma.user.deleteMany()` direto).
+Resolvido com `resetDatabase()` em `test-helpers.ts`, que apaga na ordem certa
+(Transaction → Category → User) em vez de contar com o cascade. Se um dia existir "apagar conta",
+mesma ordem manual vai ser necessária no resolver.
+
 ## Evidências
 
 - `backend/src/graphql/categories/{type-defs,resolvers,resolvers.test}.ts`,

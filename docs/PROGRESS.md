@@ -123,5 +123,21 @@
 - Lint, typecheck, 25 testes e build aprovados. Smoke test manual do servidor real: signup →
   criar categoria → criar transação → listar ambos, tudo autenticado.
   Evidências completas em [Task 004](tasks/004-domain-api.md).
+
+### 2026-09-04 — Adendo à Fase 3: achados da inspeção do Figma
+
+- Usuário duplicou o arquivo Figma (community file exige login pra ver de verdade — nem o Browser
+  sandbox nem o `Open in Figma` direto resolviam) e passou o link editável. Inspecionado com
+  Claude in Chrome: 6 páginas (Login, Cadastro, Dashboard, Transações, Categorias, Perfil) + 2
+  modais (Nova Transação, Nova/Editar Categoria), Style Guide (paleta = escala padrão do
+  Tailwind + verde de marca custom `#124B2B`/`#1F6F43`, fonte Inter).
+- Categoria no Figma tem ícone + cor + descrição opcional, não só nome; Perfil edita nome e tem
+  logout. Schema Prisma, GraphQL e resolvers da Task 004 atualizados no mesmo dia (ver adendo em
+  [Task 004](tasks/004-domain-api.md)) — 5 testes novos, 30 no total.
+- Achado colateral: `Transaction.categoryId` (`Restrict`) + `User` (`Cascade`) pra Categoria e
+  Transação é uma combinação que pode violar FK ao apagar um `User` com transação vinculada — o
+  SQLite valida cada FK durante o cascade, não no fim. Só afetou a limpeza dos testes por ora
+  (não existe "apagar conta" ainda); documentado em Task 004 pra quando existir.
+- Lint, typecheck, 30 testes e build aprovados de novo depois do adendo.
 - Próxima ação: Fase 4 — fundação do front-end (Vite + React + TypeScript, cliente GraphQL)
   ([Task 005](tasks/005-frontend-foundation.md)).

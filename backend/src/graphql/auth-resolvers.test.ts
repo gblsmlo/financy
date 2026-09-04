@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { buildApp } from '../http/app'
-import { prisma } from '../prisma'
-import { graphqlRequest } from './test-helpers'
+import { graphqlRequest, resetDatabase } from './test-helpers'
 
 const SIGNUP = /* GraphQL */ `
   mutation Signup($name: String!, $email: String!, $password: String!) {
@@ -40,7 +39,7 @@ const ME = /* GraphQL */ `
 
 describe('auth resolvers', () => {
   beforeEach(async () => {
-    await prisma.user.deleteMany()
+    await resetDatabase()
   })
 
   test('signup creates the user and returns a session token', async () => {
