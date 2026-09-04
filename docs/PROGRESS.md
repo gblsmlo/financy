@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-**Fase 5 — Páginas e features do front-end** (não iniciada)
+**Fase 6 — Aceitação e entrega** (não iniciada)
 
 ## Fases
 
@@ -13,7 +13,7 @@
 | 2. Auth (BetterAuth) | [003](tasks/003-auth-betterauth.md) | Concluída |
 | 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Concluída |
 | 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Concluída |
-| 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Não iniciada |
+| 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Concluída |
 | 6. Aceitação e entrega | [007](tasks/007-acceptance-delivery.md) | Não iniciada |
 
 ## Registro de sessões
@@ -159,5 +159,28 @@
   console.
 - Lint, typecheck e build aprovados nos dois workspaces.
   Evidências completas em [Task 005](tasks/005-frontend-foundation.md).
-- Próxima ação: Fase 5 — páginas e features do front-end com fidelidade visual completa ao
-  Figma (formulários de transação/categoria, modais, filtros) ([Task 006](tasks/006-frontend-features.md)).
+### 2026-09-04 — Fase 5: páginas e features do front-end
+
+- Modal único por domínio (cria/edita) em `frontend/src/features/{categories,transactions}/`:
+  categoria com grade de 14 ícones + 7 cores fixas (bate com `CategoryColor` do schema) +
+  descrição opcional; transação com tabs Despesa/Receita, data/valor e categoria via `Select`.
+  Confirmação de delete genérica (`AlertDialog`) reaproveitada nos dois.
+- Erros de API mapeados pro campo do formulário: e-mail duplicado no cadastro, nome de categoria
+  duplicado no modal — códigos de erro conferidos direto no back-end rodando, não assumidos.
+- `frontend/codegen.ts` ganhou um segundo alvo (plugin `typescript`, `enumsAsTypes: true`) só pra
+  ter `Category`/`Transaction`/`User` como tipo — o preset `client` sozinho só gera tipo de
+  resultado por operação, não tipo de objeto do schema.
+- Achado: instalar uma dependência nova (`@radix-ui/react-checkbox`) com o dev server do Vite já
+  rodando quebra em runtime ("Cannot read properties of null (reading 'useState')", cache de
+  dependência pré-otimizada desatualizado) — precisa apagar `frontend/node_modules/.vite` e
+  reiniciar. Documentado na Task 006 por ser reproduzível.
+- Smoke test end-to-end completo no browser real: CRUD de categoria e transação, bloqueio de
+  apagar categoria com transação vinculada, cadastro com e-mail duplicado — tudo passando, zero
+  erro de console numa aba nova.
+- Revisão visual contra o Figma feita a partir das anotações da Task 005 (paleta, campos dos
+  modais, layout), não um diff de pixel ao vivo — a sessão do Claude in Chrome caiu antes dessa
+  etapa. Recomendado repassar com o Figma aberto antes da entrega final.
+- Lint, typecheck, 30 testes de back-end e build aprovados nos dois workspaces.
+  Evidências completas em [Task 006](tasks/006-frontend-features.md).
+- Próxima ação: Fase 6 — aceitação e entrega (checklist final do enunciado, revisão do Figma com
+  acesso ao vivo, README/repositório público) ([Task 007](tasks/007-acceptance-delivery.md)).

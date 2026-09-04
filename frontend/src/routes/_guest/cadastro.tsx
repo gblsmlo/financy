@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { ClientError } from 'graphql-request'
+import { LogIn } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '../../components/ui/button'
@@ -29,6 +31,7 @@ function CadastroPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<SignupForm>({ resolver: zodResolver(signupSchema) })
 
@@ -37,6 +40,14 @@ function CadastroPage() {
     onSuccess: (user) => {
       queryClient.setQueryData(sessionQueryOptions.queryKey, user)
       navigate({ to: '/' })
+    },
+    onError: (error) => {
+      if (
+        error instanceof ClientError &&
+        error.response.errors?.[0]?.extensions?.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL'
+      ) {
+        setError('email', { message: 'Esse e-mail já está cadastrado.' })
+      }
     },
   })
 
@@ -72,9 +83,11 @@ function CadastroPage() {
             )}
           </div>
 
-          {mutation.isError && (
+          {mutation.isError && !errors.email && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof Error ? mutation.error.message : 'Erro ao cadastrar.'}
+              {mutation.error instanceof ClientError
+                ? (mutation.error.response.errors?.[0]?.message ?? 'Erro ao cadastrar.')
+                : 'Erro ao cadastrar.'}
             </p>
           )}
 
@@ -83,12 +96,19 @@ function CadastroPage() {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Já tem uma conta?{' '}
-          <Link to="/login" className="font-medium text-brand-base hover:underline">
+        <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          ou
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <p className="mb-3 text-center text-sm text-gray-500">Já tem uma conta?</p>
+        <Button variant="outline" asChild className="w-full">
+          <Link to="/login">
+            <LogIn className="size-4" />
             Fazer login
           </Link>
-        </p>
+        </Button>
       </Card>
     </main>
   )

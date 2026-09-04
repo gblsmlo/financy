@@ -1,10 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { ClientError } from 'graphql-request'
+import { LogIn } from 'lucide-react'
+import { useId } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
+import { Checkbox } from '../../components/ui/checkbox'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { login } from '../../features/auth/api'
@@ -24,6 +28,7 @@ type LoginForm = z.infer<typeof loginSchema>
 function LoginPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const rememberMeId = useId()
 
   const {
     register,
@@ -61,9 +66,23 @@ function LoginPage() {
             {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
           </div>
 
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <Checkbox id={rememberMeId} />
+              <Label htmlFor={rememberMeId} className="font-normal text-gray-600">
+                Lembrar-me
+              </Label>
+            </div>
+            <span className="cursor-not-allowed text-gray-400" title="Em breve">
+              Recuperar senha
+            </span>
+          </div>
+
           {mutation.isError && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof Error ? mutation.error.message : 'Erro ao entrar.'}
+              {mutation.error instanceof ClientError
+                ? (mutation.error.response.errors?.[0]?.message ?? 'Erro ao entrar.')
+                : 'Erro ao entrar.'}
             </p>
           )}
 
@@ -72,12 +91,19 @@ function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Ainda não tem uma conta?{' '}
-          <Link to="/cadastro" className="font-medium text-brand-base hover:underline">
+        <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          ou
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <p className="mb-3 text-center text-sm text-gray-500">Ainda não tem uma conta?</p>
+        <Button variant="outline" asChild className="w-full">
+          <Link to="/cadastro">
+            <LogIn className="size-4" />
             Criar conta
           </Link>
-        </p>
+        </Button>
       </Card>
     </main>
   )
