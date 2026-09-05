@@ -47,8 +47,9 @@ back-end — ele assina as sessões:
 openssl rand -base64 32
 ```
 
-As chaves de cada workspace estão documentadas nos dois arquivos `.env.example`. Segredos e
-arquivos `.env` reais não devem ser versionados.
+As chaves de cada workspace estão documentadas nos dois arquivos `.env.example`, e o
+`.env.example` da raiz lista todas num lugar só. Segredos e arquivos `.env` reais não devem ser
+versionados.
 
 ## Comandos
 
