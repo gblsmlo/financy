@@ -2,8 +2,9 @@
 
 ## Estado atual
 
-**Fase 6 — Aceitação e entrega** (em andamento — 3 dos 4 bloqueadores da
-[auditoria](bugs/audit-fase-6.md) resolvidos; falta o repositório público)
+**Fase 6 — Aceitação e entrega** (em andamento — os 4 bloqueadores da
+[auditoria](bugs/audit-fase-6.md) resolvidos; faltam a revisão visual contra o Figma e os
+defeitos 5–12)
 
 ## Fases
 
@@ -201,5 +202,9 @@
     schema de ambiente): `.env.example` e README corrigidos, e a falha de boot passou a ser uma
     mensagem que diz o que fazer em vez do dump cru do Zod. `bun run codegen` também parou de
     sujar a árvore.
-- Bloqueador 1 em aberto: o `origin` ainda aponta pro repositório do Brev.ly. Criar repositório
-  público é ação de publicação — aguardando o autor.
+- Bloqueador 1 resolvido: repositório público https://github.com/gblsmlo/financy criado, `origin`
+  reapontado (apontava pro Brev.ly) e `main` fast-forward pro trabalho do Financy — estava parada
+  no último commit do projeto anterior. Histórico varrido antes do push, sem segredo em nenhum
+  commit.
+- Segue aberto pra fechar a Fase 6: revisão visual contra o Figma (FR-12) e os defeitos 5–12 da
+  auditoria.

@@ -52,8 +52,8 @@ TailwindCSS, Shadcn, React Query, React Hook Form, Zod.
 
 | # | Requisito | Fase | Status |
 | --- | --- | --- | --- |
-| DL-01 | Repositório público no GitHub | 007 | Planejado |
-| DL-02 | Subpastas `backend/` e `frontend/` com a resolução completa | 001 | Pastas criadas — conteúdo pendente |
+| DL-01 | Repositório público no GitHub | 007 | Concluído — [gblsmlo/financy](https://github.com/gblsmlo/financy) |
+| DL-02 | Subpastas `backend/` e `frontend/` com a resolução completa | 001 | Concluído |
 | DL-03 | Funcionalidades extras (ex.: upload de avatar) fora da branch principal | — | Não-goal |
 
 ## Fora de escopo (herdado do projeto anterior, não se aplica ao Financy)

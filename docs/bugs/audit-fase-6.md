@@ -9,8 +9,8 @@ não bloqueia, ⚪ nit.
 **Resultado:** Fases 0–5 funcionalmente conformes. Fase 6 (entrega) não passava — 4 bloqueadores,
 todos de infraestrutura de entrega, nenhum de domínio. Mais 8 defeitos reais e 8 nits.
 
-Os 4 bloqueadores foram atacados no mesmo dia — ver "Correção" em cada um. Os defeitos 5–12 e os
-nits seguem abertos.
+Os 4 bloqueadores foram resolvidos no mesmo dia — ver "Correção" em cada um. Os defeitos 5–12 e
+os nits seguem abertos.
 
 Fidelidade visual (FR-12) fora do escopo desta passada — revisão manual contra o Figma fica com
 o autor.
@@ -38,9 +38,11 @@ público no GitHub") não é só "pendente" — o destino configurado está erra
 
 **Fix:** criar o repositório `financy` e reapontar o `origin`.
 
-**Correção:** pendente de confirmação do autor — criar repositório público é ação de publicação,
-não foi feita sem o aval dele. `gh` está autenticado como `gblsmlo` e não existe nenhum repo
-`financy` na conta.
+**Correção:** repositório https://github.com/gblsmlo/financy criado público pelo autor, `origin`
+reapontado pra ele. `main` estava parada no último commit do Brev.ly, 10 commits atrás do
+trabalho do Financy e nenhum à frente — fast-forward pra que o branch padrão do repositório
+público carregue a resolução, como o DL-02 pede. O histórico foi varrido antes do push: nenhum
+`.env`, chave privada ou token em nenhum commit.
 
 ### 2. 🔴 `bun run test:frontend` sai com código 1
 
