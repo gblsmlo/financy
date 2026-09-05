@@ -6,7 +6,11 @@ import { prisma } from '../../prisma'
 import type { GraphQLContext } from '../context'
 import { requireUser } from '../require-user'
 
-const nameSchema = z.string().trim().min(1, 'Nome é obrigatório.').max(100)
+const nameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Nome é obrigatório.')
+  .max(100, 'Nome tem no máximo 100 caracteres.')
 
 export const accountResolvers = {
   Mutation: {

@@ -7,10 +7,11 @@ back-end e front-end rodando. Severidade: 🔴 bloqueia requisito ou entrega, �
 não bloqueia, ⚪ nit.
 
 **Resultado:** Fases 0–5 funcionalmente conformes. Fase 6 (entrega) não passava — 4 bloqueadores,
-todos de infraestrutura de entrega, nenhum de domínio. Mais 8 defeitos reais e 8 nits.
+todos de infraestrutura de entrega, nenhum de domínio. Mais 8 defeitos (um deles retratado depois
+como achado incorreto — ver 10) e 8 nits.
 
-Os 4 bloqueadores foram resolvidos no mesmo dia — ver "Correção" em cada um. Os defeitos 5–12 e
-os nits seguem abertos.
+Os 4 bloqueadores e os defeitos 5–12 foram resolvidos — ver "Correção" em cada um. O defeito 10
+era achado incorreto e foi retratado. Seguem abertos os nits e a revisão visual (FR-12).
 
 Fidelidade visual (FR-12) fora do escopo desta passada — revisão manual contra o Figma fica com
 o autor.
@@ -154,6 +155,14 @@ dois modais caem em `mutation.error.message`.
 **Onde:** `frontend/src/features/transactions/transaction-form-dialog.tsx:213`,
 `frontend/src/features/categories/category-form-dialog.tsx:178`.
 
+**Correção:** `frontend/src/lib/api-error.ts` com `apiErrorMessage(error, fallback)` e
+`apiErrorCode(error)`, e os sete pontos que liam erro de API passaram a usar os dois — antes cada
+página repetia o `instanceof` na mão e as duas que erraram a forma vazavam o payload. Teste em
+`api-error.test.ts` fixa a diferença: asserta que `error.message` contém `{` e que
+`apiErrorMessage` devolve só a frase. Conferido no browser forçando `NOT_FOUND` de verdade
+(categoria escolhida no modal, apagada por fora, submit): a tela mostra "Categoria não
+encontrada.", sem JSON.
+
 ### 6. 🟡 A página de Perfil engole erro de mutation em silêncio
 
 Reproduzido ao vivo: nome com mais de 100 caracteres (o front não valida, o back valida). A API
@@ -163,6 +172,12 @@ interface não muda nada — nem erro, nem sucesso. O usuário fica achando que 
 Não existe nenhum branch `mutation.isError` no formulário.
 
 **Onde:** `frontend/src/routes/_authenticated/perfil.tsx:73`.
+
+**Correção:** bloco `mutation.isError` no formulário, com `apiErrorMessage`. O `mutation.reset()`
+antes de cada envio também derruba o "Alterações salvas com sucesso." da gravação anterior, que
+ficava na tela enquanto o usuário digitava a mudança seguinte (era o nit do `isSuccess` grudento).
+Conferido no browser com o back-end fora do ar: aparece "Não foi possível salvar as alterações."
+onde antes não aparecia nada.
 
 ### 7. 🟡 Rota raiz sem `errorComponent`
 
@@ -174,6 +189,11 @@ inexistente — o `notFoundComponent` entrou, o `errorComponent` irmão não.
 
 **Onde:** `frontend/src/routes/__root.tsx:10`.
 
+**Correção:** `errorComponent` no root route, dividindo com o `notFoundComponent` o mesmo
+componente de mensagem, e um botão "Tentar de novo" que chama `router.invalidate()`. Conferido no
+browser com o back-end fora do ar: onde antes vinha a tela preta com "Something went wrong!",
+agora vem a página do Financy com "Algo deu errado".
+
 ### 8. 🟡 Mensagens do Zod vazam em inglês
 
 `.max(200)` (descrição de transação), `.max(100)` (nome de categoria e de perfil) e o
@@ -181,18 +201,33 @@ inexistente — o `notFoundComponent` entrou, o `errorComponent` irmão não.
 `"Too big: expected string to have <=200 characters"` e `"Invalid input"`. Todo o resto das
 mensagens do back-end é português.
 
+**Correção:** mensagem em português em todo `max`, no `union` da data, no `enum` de tipo e no
+`categoryId`.
+
 ### 9. 🟡 A validação do front não espelha os limites do back
 
 Descrição (200) e nome (100) não têm `max` no schema do front, então o usuário só descobre o
 limite quando o servidor recusa. É a causa raiz de 5, 6 e 8 serem alcançáveis pela interface.
 
-### 10. 🟡 N+1 na listagem de transações
+**Correção:** `max` espelhando o back-end nos três formulários (transação, categoria, perfil).
+Conferido no browser: nome de 150 caracteres no Perfil agora para no campo com "Máximo de 100
+caracteres." e nem chega a sair da máquina.
 
-Medido com log de query do Prisma: 12 transações geram 13 queries SQL. O field resolver
-`Transaction.category` faz um `findUniqueOrThrow` por linha; a query de listagem não usa
-`include` e não há loader do Mercurius registrado.
+### 10. ⚪ ~~N+1 na listagem de transações~~ — achado incorreto
 
-**Onde:** `backend/src/graphql/transactions/resolvers.ts:112`.
+**Retratação.** Este achado estava errado e foi retirado. A medição que o originou rodava as
+buscas de categoria num laço `for await` sequencial, que não é como o GraphQL executa resolver de
+campo: eles rodam concorrentes, e o Prisma agrupa as `findUnique` do mesmo tick numa query só com
+`IN`.
+
+Medido de novo pelo caminho real (requisição GraphQL de verdade, log de query no client): 12
+transações custam **4 queries**, e adicionar `include: { category: true }` na listagem também dá
+4 — ganho zero. O `include` chegou a ser escrito e foi revertido por não pagar nada.
+
+Ficou o teste (`backend/src/graphql/transactions/n-plus-one.test.ts`), que vale por si: compara o
+custo de listar 3 contra 12 transações e exige que seja igual. Prova a propriedade sem depender
+do agrupamento do Prisma — trocando o `findUniqueOrThrow` por um `findFirst` (que o Prisma não
+agrupa), o teste vai de 6 pra 15 queries e quebra.
 
 ### 11. 🟡 `isCurrentMonth` compara data UTC-meia-noite com o instante atual em UTC
 
@@ -202,11 +237,21 @@ mês" e "Despesas do mês" pro mês seguinte.
 
 **Onde:** `frontend/src/routes/_authenticated/index.tsx:18`.
 
+**Correção:** extraído pra `frontend/src/lib/dates.ts` como `isSameMonthAsToday`, lendo a
+transação em UTC (é uma data de calendário, não um instante) e o "hoje" no fuso do usuário. O
+"hoje" entra como parâmetro tipado só pelo que a comparação usa (`getFullYear`/`getMonth`), então
+o teste passa um stub e roda igual em qualquer fuso — com a implementação antiga os três testes
+quebram mesmo num runner em UTC.
+
 ### 12. 🟡 A página de Categorias não tem loading state nem error state
 
 O critério do [Task 006](../tasks/006-frontend-features.md) pede "loading/erro/empty state" nas
 duas listagens. `transacoes` tem loading; `categorias` renderiza "Nenhuma categoria ainda."
 enquanto a query ainda está no ar, e nunca mostra erro de leitura.
+
+**Correção:** `useCategoryStats` passou a devolver `{ stats, isLoading, error }` em vez de só o
+array, e a página trata os três casos. Teste novo no hook garante que `isLoading` é `true` antes
+do dado chegar, em vez de entregar lista vazia.
 
 ## Nits
 
@@ -216,6 +261,7 @@ enquanto a query ainda está no ar, e nunca mostra erro de leitura.
 - **`description: null` é recusado no `updateCategory`.** O schema declara `description: String`
   (anulável), mas o Zod `.optional()` recusa `null` com `BAD_USER_INPUT`. Omitir o campo mantém o
   valor antigo, então pela API não há como limpar uma descrição a não ser mandando `""`.
+- ~~**`mutation.isSuccess` é grudento no Perfil.**~~ Corrigido junto do defeito 6.
 - ~~**`bun run codegen` suja a árvore de trabalho.**~~ `schema:print` gravava a indentação dos
   template literals e o `backend/schema.graphql` versionado tinha sido dedentado à mão, então todo
   codegen produzia um diff de 112 linhas só de espaço em branco. Corrigido junto do bloqueador 4.
@@ -223,8 +269,6 @@ enquanto a query ainda está no ar, e nunca mostra erro de leitura.
   uma receita de R$ 100 e uma despesa de R$ 100 exibe R$ 200,00.
 - **O Dockerfile nunca roda `prisma generate`.** `src/generated/prisma` é gitignored, então a
   imagem não builda a partir de um checkout limpo.
-- **`mutation.isSuccess` é grudento no Perfil** — "Alterações salvas com sucesso." fica na tela
-  pra sempre depois do primeiro save.
 - **Descrição de categoria é gravada como `""`, não `null`** — o default do React Hook Form pro
   textarea opcional é string vazia.
 - **`requirements.md` DL-02 está desatualizado** — diz "Pastas criadas — conteúdo pendente"; o

@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ClientError } from 'graphql-request'
 import { LogIn } from 'lucide-react'
 import { useId } from 'react'
 import { useForm } from 'react-hook-form'
@@ -13,6 +12,7 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { login } from '../../features/auth/api'
 import { sessionQueryOptions } from '../../features/auth/session'
+import { apiErrorMessage } from '../../lib/api-error'
 
 export const Route = createFileRoute('/_guest/login')({
   component: LoginPage,
@@ -91,9 +91,7 @@ function LoginPage() {
 
           {mutation.isError && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof ClientError
-                ? (mutation.error.response.errors?.[0]?.message ?? 'Erro ao entrar.')
-                : 'Erro ao entrar.'}
+              {apiErrorMessage(mutation.error, 'Erro ao entrar.')}
             </p>
           )}
 

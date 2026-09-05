@@ -26,6 +26,7 @@ import {
 } from '../../components/ui/select'
 import type { TransactionType } from '../../gql/graphql'
 import type { Transaction } from '../../gql/schema-types'
+import { apiErrorMessage } from '../../lib/api-error'
 import { cn } from '../../lib/utils'
 import { categoriesQueryOptions } from '../categories/api'
 import { createTransaction, updateTransaction } from './api'
@@ -36,7 +37,11 @@ function parseAmount(value: string): number {
 
 const transactionSchema = z.object({
   type: z.enum(['EXPENSE', 'INCOME']),
-  description: z.string().trim().min(1, 'Descrição é obrigatória.'),
+  description: z
+    .string()
+    .trim()
+    .min(1, 'Descrição é obrigatória.')
+    .max(200, 'Máximo de 200 caracteres.'),
   date: z.string().min(1, 'Data é obrigatória.'),
   amount: z
     .string()
@@ -210,7 +215,7 @@ export function TransactionFormDialog({ transaction, trigger }: TransactionFormD
 
           {mutation.isError && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof Error ? mutation.error.message : 'Erro ao salvar.'}
+              {apiErrorMessage(mutation.error, 'Erro ao salvar.')}
             </p>
           )}
 

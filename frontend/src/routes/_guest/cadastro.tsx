@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ClientError } from 'graphql-request'
 import { LogIn } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -11,6 +10,7 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { signup } from '../../features/auth/api'
 import { sessionQueryOptions } from '../../features/auth/session'
+import { apiErrorCode, apiErrorMessage } from '../../lib/api-error'
 
 export const Route = createFileRoute('/_guest/cadastro')({
   component: CadastroPage,
@@ -42,10 +42,7 @@ function CadastroPage() {
       navigate({ to: '/' })
     },
     onError: (error) => {
-      if (
-        error instanceof ClientError &&
-        error.response.errors?.[0]?.extensions?.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL'
-      ) {
+      if (apiErrorCode(error) === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL') {
         setError('email', { message: 'Esse e-mail já está cadastrado.' })
       }
     },
@@ -101,9 +98,7 @@ function CadastroPage() {
 
           {mutation.isError && !errors.email && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof ClientError
-                ? (mutation.error.response.errors?.[0]?.message ?? 'Erro ao cadastrar.')
-                : 'Erro ao cadastrar.'}
+              {apiErrorMessage(mutation.error, 'Erro ao cadastrar.')}
             </p>
           )}
 

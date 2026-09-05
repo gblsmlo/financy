@@ -10,13 +10,14 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { updateProfile } from '../../features/auth/api'
 import { sessionQueryOptions, useSession } from '../../features/auth/session'
+import { apiErrorMessage } from '../../lib/api-error'
 
 export const Route = createFileRoute('/_authenticated/perfil')({
   component: PerfilPage,
 })
 
 const profileSchema = z.object({
-  name: z.string().trim().min(1, 'Nome é obrigatório.'),
+  name: z.string().trim().min(1, 'Nome é obrigatório.').max(100, 'Máximo de 100 caracteres.'),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
@@ -41,6 +42,13 @@ function PerfilPage() {
     },
   })
 
+  // Sem isso o "salvo com sucesso" da primeira gravação fica na tela enquanto o usuário digita
+  // a alteração seguinte, dizendo que já salvou o que ainda nem foi enviado.
+  function submit(data: ProfileForm) {
+    mutation.reset()
+    mutation.mutate(data)
+  }
+
   if (!user) return null
 
   return (
@@ -54,10 +62,7 @@ function PerfilPage() {
           <p className="text-sm text-gray-500">{user.email}</p>
         </div>
 
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={handleSubmit((data) => mutation.mutate(data))}
-        >
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit(submit)}>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Nome completo</Label>
             <Input id="name" aria-invalid={!!errors.name} {...register('name')} />
@@ -72,6 +77,12 @@ function PerfilPage() {
 
           {mutation.isSuccess && (
             <p className="text-sm text-success">Alterações salvas com sucesso.</p>
+          )}
+
+          {mutation.isError && (
+            <p className="text-sm text-danger">
+              {apiErrorMessage(mutation.error, 'Não foi possível salvar as alterações.')}
+            </p>
           )}
 
           <Button type="submit" disabled={mutation.isPending}>

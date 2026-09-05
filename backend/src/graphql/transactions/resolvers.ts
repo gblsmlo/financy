@@ -8,10 +8,16 @@ import { requireUser } from '../require-user'
 
 const createInputSchema = z.object({
   amountInCents: z.number().int().positive('Valor precisa ser maior que zero.'),
-  categoryId: z.string().min(1),
-  date: z.iso.datetime({ offset: true }).or(z.iso.date()),
-  description: z.string().trim().min(1, 'Descrição é obrigatória.').max(200),
-  type: z.enum(['INCOME', 'EXPENSE']),
+  categoryId: z.string().min(1, 'Selecione uma categoria.'),
+  date: z
+    .union([z.iso.datetime({ offset: true }), z.iso.date()], 'Data inválida.')
+    .describe('AAAA-MM-DD ou ISO 8601 com offset'),
+  description: z
+    .string()
+    .trim()
+    .min(1, 'Descrição é obrigatória.')
+    .max(200, 'Descrição tem no máximo 200 caracteres.'),
+  type: z.enum(['INCOME', 'EXPENSE'], 'Tipo inválido.'),
 })
 
 const updateInputSchema = createInputSchema.partial()
@@ -109,6 +115,8 @@ export const transactionResolvers = {
     createdAt: (transaction: { createdAt: Date }) => transaction.createdAt.toISOString(),
     updatedAt: (transaction: { updatedAt: Date }) => transaction.updatedAt.toISOString(),
 
+    // Uma chamada por transação, mas o Prisma junta as `findUnique` concorrentes de um mesmo
+    // tick numa query só — ver o teste em n-plus-one.test.ts.
     category(transaction: { categoryId: string }) {
       return prisma.category.findUniqueOrThrow({ where: { id: transaction.categoryId } })
     },

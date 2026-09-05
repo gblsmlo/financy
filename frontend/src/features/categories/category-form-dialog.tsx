@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ClientError } from 'graphql-request'
 import { type ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -19,13 +18,14 @@ import { Label } from '../../components/ui/label'
 import { Textarea } from '../../components/ui/textarea'
 import type { CategoryColor } from '../../gql/graphql'
 import type { Category } from '../../gql/schema-types'
+import { apiErrorCode, apiErrorMessage } from '../../lib/api-error'
 import { cn } from '../../lib/utils'
 import { createCategory, updateCategory } from './api'
 import { categoryColorClasses, categoryColors, categoryIconNames, categoryIcons } from './visuals'
 
 const categorySchema = z.object({
-  name: z.string().trim().min(1, 'Nome é obrigatório.'),
-  description: z.string().trim().optional(),
+  name: z.string().trim().min(1, 'Nome é obrigatório.').max(100, 'Máximo de 100 caracteres.'),
+  description: z.string().trim().max(200, 'Máximo de 200 caracteres.').optional(),
   icon: z.enum(categoryIconNames, { error: 'Escolha um ícone.' }),
   color: z.enum(categoryColors, { error: 'Escolha uma cor.' }),
 })
@@ -83,11 +83,8 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
       setOpen(false)
     },
     onError: (error) => {
-      if (
-        error instanceof ClientError &&
-        error.response.errors?.[0]?.extensions?.code === 'CONFLICT'
-      ) {
-        setError('name', { message: error.response.errors[0]?.message })
+      if (apiErrorCode(error) === 'CONFLICT') {
+        setError('name', { message: apiErrorMessage(error, 'Nome já usado.') })
       }
     },
   })
@@ -175,7 +172,7 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
 
           {mutation.isError && !errors.name && (
             <p className="text-sm text-danger">
-              {mutation.error instanceof Error ? mutation.error.message : 'Erro ao salvar.'}
+              {apiErrorMessage(mutation.error, 'Erro ao salvar.')}
             </p>
           )}
 

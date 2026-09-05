@@ -51,9 +51,9 @@ describe('useCategoryStats', () => {
   test('agrega contagem e total por categoria', async () => {
     const { result } = renderHookWithQuery(() => useCategoryStats())
 
-    await waitFor(() => expect(result.current).toHaveLength(3))
+    await waitFor(() => expect(result.current.stats).toHaveLength(3))
 
-    const byName = Object.fromEntries(result.current.map((s) => [s.category.name, s]))
+    const byName = Object.fromEntries(result.current.stats.map((s) => [s.category.name, s]))
 
     expect(byName.Alimentação.itemCount).toBe(2)
     expect(byName.Alimentação.totalInCents).toBe(7500)
@@ -61,12 +61,25 @@ describe('useCategoryStats', () => {
     expect(byName.Transporte.totalInCents).toBe(1800)
   })
 
+  // Sem esse sinal a página de Categorias renderizava "Nenhuma categoria ainda." durante a
+  // carga, dizendo que não existe categoria antes de saber.
+  test('reporta carregamento em vez de entregar lista vazia', async () => {
+    const { result } = renderHookWithQuery(() => useCategoryStats())
+
+    expect(result.current.isLoading).toBe(true)
+    expect(result.current.stats).toHaveLength(0)
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.stats).toHaveLength(3)
+    expect(result.current.error).toBeNull()
+  })
+
   test('categoria sem transação fica zerada em vez de sumir da lista', async () => {
     const { result } = renderHookWithQuery(() => useCategoryStats())
 
-    await waitFor(() => expect(result.current).toHaveLength(3))
+    await waitFor(() => expect(result.current.stats).toHaveLength(3))
 
-    const semUso = result.current.find((s) => s.category.name === 'Sem uso')
+    const semUso = result.current.stats.find((s) => s.category.name === 'Sem uso')
 
     expect(semUso?.itemCount).toBe(0)
     expect(semUso?.totalInCents).toBe(0)

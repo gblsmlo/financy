@@ -9,9 +9,13 @@ const categoryColors = ['BLUE', 'PURPLE', 'PINK', 'RED', 'ORANGE', 'YELLOW', 'GR
 
 const categoryInputSchema = z.object({
   color: z.enum(categoryColors),
-  description: z.string().trim().max(200).optional(),
+  description: z.string().trim().max(200, 'Descrição tem no máximo 200 caracteres.').optional(),
   icon: z.string().trim().min(1, 'Ícone é obrigatório.'),
-  name: z.string().trim().min(1, 'Nome é obrigatório.').max(100),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Nome é obrigatório.')
+    .max(100, 'Nome tem no máximo 100 caracteres.'),
 })
 
 function parseInput(input: unknown): z.infer<typeof categoryInputSchema> {

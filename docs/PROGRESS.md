@@ -2,9 +2,8 @@
 
 ## Estado atual
 
-**Fase 6 — Aceitação e entrega** (em andamento — os 4 bloqueadores da
-[auditoria](bugs/audit-fase-6.md) resolvidos; faltam a revisão visual contra o Figma e os
-defeitos 5–12)
+**Fase 6 — Aceitação e entrega** (em andamento — bloqueadores e defeitos da
+[auditoria](bugs/audit-fase-6.md) resolvidos; falta a revisão visual contra o Figma)
 
 ## Fases
 
@@ -206,5 +205,21 @@ defeitos 5–12)
   reapontado (apontava pro Brev.ly) e `main` fast-forward pro trabalho do Financy — estava parada
   no último commit do projeto anterior. Histórico varrido antes do push, sem segredo em nenhum
   commit.
-- Segue aberto pra fechar a Fase 6: revisão visual contra o Figma (FR-12) e os defeitos 5–12 da
-  auditoria.
+- Defeitos 5–12 da auditoria corrigidos:
+  - Erro de API virou `lib/api-error.ts` (`apiErrorMessage`/`apiErrorCode`), usado nos sete pontos
+    que liam erro na mão. Os dois modais mostravam `ClientError.message`, que carrega o JSON da
+    resposta e da request concatenado; o Perfil não mostrava erro nenhum.
+  - `errorComponent` no root route — back-end fora do ar caía na tela preta do TanStack Router.
+  - Limites do Zod espelhados no front (200/100), então o usuário para no campo em vez de bater
+    no servidor; e mensagem em português nos `max`/`union`/`enum` do back, que vazavam inglês.
+  - Virada de mês do Dashboard passou a seguir o fuso do usuário (`lib/dates.ts`) — lida em UTC
+    dos dois lados, as últimas ~3h de todo mês em BRT contavam pro mês seguinte.
+  - Página de Categorias ganhou loading e erro; `useCategoryStats` devolve `{ stats, isLoading,
+    error }`.
+- **Retratado:** o N+1 na listagem de transações (achado 10) não existe. A medição original usava
+  laço sequencial; resolver de campo roda concorrente e o Prisma agrupa as `findUnique` do mesmo
+  tick numa query com `IN` — 12 transações custam 4 queries, com ou sem `include`. Ficou o teste
+  que compara 3 contra 12 linhas e exige custo igual.
+- 51 testes (9 novos no front, 1 no back). Cada correção de comportamento foi conferida quebrando
+  o código de propósito primeiro, e as três de UI no browser com back-end real.
+- Segue aberto pra fechar a Fase 6: revisão visual contra o Figma (FR-12) e os nits da auditoria.

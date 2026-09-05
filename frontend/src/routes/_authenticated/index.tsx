@@ -8,6 +8,7 @@ import { useCategoryStats } from '../../features/categories/use-category-stats'
 import { categoryColorClasses } from '../../features/categories/visuals'
 import { transactionsQueryOptions } from '../../features/transactions/api'
 import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
+import { isSameMonthAsToday } from '../../lib/dates'
 import { formatCents } from '../../lib/money'
 import { cn } from '../../lib/utils'
 
@@ -15,15 +16,9 @@ export const Route = createFileRoute('/_authenticated/')({
   component: DashboardPage,
 })
 
-function isCurrentMonth(isoDate: string): boolean {
-  const date = new Date(isoDate)
-  const now = new Date()
-  return date.getUTCFullYear() === now.getUTCFullYear() && date.getUTCMonth() === now.getUTCMonth()
-}
-
 function DashboardPage() {
   const { data: transactions = [] } = useQuery(transactionsQueryOptions)
-  const stats = useCategoryStats()
+  const { stats } = useCategoryStats()
 
   const saldoTotal = transactions.reduce(
     (total, t) => total + (t.type === 'INCOME' ? t.amountInCents : -t.amountInCents),
@@ -31,11 +26,11 @@ function DashboardPage() {
   )
 
   const receitasDoMes = transactions
-    .filter((t) => t.type === 'INCOME' && isCurrentMonth(t.date))
+    .filter((t) => t.type === 'INCOME' && isSameMonthAsToday(t.date))
     .reduce((total, t) => total + t.amountInCents, 0)
 
   const despesasDoMes = transactions
-    .filter((t) => t.type === 'EXPENSE' && isCurrentMonth(t.date))
+    .filter((t) => t.type === 'EXPENSE' && isSameMonthAsToday(t.date))
     .reduce((total, t) => total + t.amountInCents, 0)
 
   const recent = [...transactions]

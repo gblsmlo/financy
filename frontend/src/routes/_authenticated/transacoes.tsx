@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { ClientError } from 'graphql-request'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { DeleteConfirmDialog } from '../../components/delete-confirm-dialog'
@@ -18,6 +17,7 @@ import { categoriesQueryOptions } from '../../features/categories/api'
 import { categoryColorClasses } from '../../features/categories/visuals'
 import { deleteTransaction, transactionsQueryOptions } from '../../features/transactions/api'
 import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
+import { apiErrorMessage } from '../../lib/api-error'
 import { formatCents } from '../../lib/money'
 import { cn } from '../../lib/utils'
 
@@ -45,11 +45,7 @@ function TransacoesPage() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
     onError: (error) => {
-      setDeleteError(
-        error instanceof ClientError
-          ? (error.response.errors?.[0]?.message ?? 'Erro ao apagar.')
-          : 'Erro ao apagar.',
-      )
+      setDeleteError(apiErrorMessage(error, 'Erro ao apagar.'))
     },
   })
 

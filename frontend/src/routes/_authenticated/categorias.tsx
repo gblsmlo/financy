@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { ClientError } from 'graphql-request'
 import { Plus, Tag, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 
@@ -11,13 +10,14 @@ import { CategoryCard } from '../../features/categories/category-card'
 import { CategoryFormDialog } from '../../features/categories/category-form-dialog'
 import { useCategoryStats } from '../../features/categories/use-category-stats'
 import { categoryIcons, isCategoryIconName } from '../../features/categories/visuals'
+import { apiErrorMessage } from '../../lib/api-error'
 
 export const Route = createFileRoute('/_authenticated/categorias')({
   component: CategoriasPage,
 })
 
 function CategoriasPage() {
-  const stats = useCategoryStats()
+  const { stats, isLoading, error } = useCategoryStats()
   const queryClient = useQueryClient()
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -33,11 +33,7 @@ function CategoriasPage() {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (error) => {
-      setDeleteError(
-        error instanceof ClientError
-          ? (error.response.errors?.[0]?.message ?? 'Erro ao apagar.')
-          : 'Erro ao apagar.',
-      )
+      setDeleteError(apiErrorMessage(error, 'Erro ao apagar.'))
     },
   })
 
@@ -91,18 +87,28 @@ function CategoriasPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ category, itemCount, totalInCents }) => (
-          <CategoryCard
-            key={category.id}
-            category={category}
-            itemCount={itemCount}
-            totalInCents={totalInCents}
-            onDelete={() => deleteMutation.mutate(category.id)}
-          />
-        ))}
-        {stats.length === 0 && <p className="text-sm text-gray-500">Nenhuma categoria ainda.</p>}
-      </div>
+      {isLoading && <p className="text-sm text-gray-500">Carregando…</p>}
+
+      {!isLoading && error && (
+        <p className="text-sm text-danger">
+          {apiErrorMessage(error, 'Não foi possível carregar as categorias.')}
+        </p>
+      )}
+
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map(({ category, itemCount, totalInCents }) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              itemCount={itemCount}
+              totalInCents={totalInCents}
+              onDelete={() => deleteMutation.mutate(category.id)}
+            />
+          ))}
+          {stats.length === 0 && <p className="text-sm text-gray-500">Nenhuma categoria ainda.</p>}
+        </div>
+      )}
     </div>
   )
 }
