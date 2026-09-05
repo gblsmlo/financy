@@ -40,8 +40,15 @@ bun run db:migrate   # cria backend/dev.db e gera o Prisma Client
 bun run codegen      # gera os tipos GraphQL do front a partir do schema do back-end
 ```
 
-As chaves obrigatórias estão documentadas nos dois arquivos `.env.example`. Segredos e arquivos
-`.env` reais não devem ser versionados.
+Troque o `JWT_SECRET` do `backend/.env` por um valor gerado localmente antes de subir o
+back-end — ele assina as sessões:
+
+```bash
+openssl rand -base64 32
+```
+
+As chaves de cada workspace estão documentadas nos dois arquivos `.env.example`. Segredos e
+arquivos `.env` reais não devem ser versionados.
 
 ## Comandos
 
@@ -55,7 +62,6 @@ As chaves obrigatórias estão documentadas nos dois arquivos `.env.example`. Se
 | `bun run test` | Executa os testes |
 | `bun run test:backend` | Executa somente os testes do back-end |
 | `bun run test:frontend` | Executa somente os testes do front-end |
-| `bun run test:e2e` | Executa os testes end-to-end (Playwright) |
 | `bun run build` | Gera os artefatos de produção |
 | `bun run codegen` | Regenera o schema exportado do back-end e os tipos GraphQL do front-end |
 

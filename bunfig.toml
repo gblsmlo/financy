@@ -9,4 +9,3 @@ coveragePathIgnorePatterns = [
   "**/vite-env.d.ts",
   "**/dist/**",
 ]
-pathIgnorePatterns = ["web/e2e/**", "playwright-report/**", "test-results/**"]

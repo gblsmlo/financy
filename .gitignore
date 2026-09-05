@@ -4,8 +4,6 @@ dist/
 .env.test
 .DS_Store
 coverage/
-playwright-report/
-test-results/
 *.log
 *.tsbuildinfo
 *.db

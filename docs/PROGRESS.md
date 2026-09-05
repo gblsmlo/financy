@@ -2,7 +2,8 @@
 
 ## Estado atual
 
-**Fase 6 — Aceitação e entrega** (não iniciada)
+**Fase 6 — Aceitação e entrega** (em andamento — 3 dos 4 bloqueadores da
+[auditoria](bugs/audit-fase-6.md) resolvidos; falta o repositório público)
 
 ## Fases
 
@@ -14,7 +15,7 @@
 | 3. API de domínio (transações/categorias) | [004](tasks/004-domain-api.md) | Concluída |
 | 4. Fundação do front-end | [005](tasks/005-frontend-foundation.md) | Concluída |
 | 5. Páginas e features do front-end | [006](tasks/006-frontend-features.md) | Concluída |
-| 6. Aceitação e entrega | [007](tasks/007-acceptance-delivery.md) | Não iniciada |
+| 6. Aceitação e entrega | [007](tasks/007-acceptance-delivery.md) | Em andamento |
 
 ## Registro de sessões
 
@@ -184,3 +185,21 @@
   Evidências completas em [Task 006](tasks/006-frontend-features.md).
 - Próxima ação: Fase 6 — aceitação e entrega (checklist final do enunciado, revisão do Figma com
   acesso ao vivo, README/repositório público) ([Task 007](tasks/007-acceptance-delivery.md)).
+
+### 2026-09-05 — Auditoria de requisitos e desbloqueio da Fase 6
+
+- Auditoria das Fases 0–5 contra o enunciado, com smoke test dos 10 requisitos funcionais na API
+  real e passada no browser: domínio conforme, entrega não. Achados completos em
+  [audit-fase-6](bugs/audit-fase-6.md) — 4 bloqueadores, 8 defeitos, 8 nits.
+- Bloqueadores 2, 3 e 4 corrigidos:
+  - Front-end ganhou suíte de teste (happy-dom + testing-library, 12 testes em 4 arquivos) —
+    `bun run test:frontend` saía com código 1 por não existir nenhum teste. Total: 42.
+  - Resíduo do Playwright removido (`playwright.config.ts` ainda apontava pra `web/e2e`, pasta que
+    não existe desde a Fase 0), junto com o script, a dependência e as entradas mortas de
+    `.gitignore` e `bunfig.toml`.
+  - Setup do README quebrava em clone limpo (`JWT_SECRET` vazio no `.env.example` × `min(1)` no
+    schema de ambiente): `.env.example` e README corrigidos, e a falha de boot passou a ser uma
+    mensagem que diz o que fazer em vez do dump cru do Zod. `bun run codegen` também parou de
+    sujar a árvore.
+- Bloqueador 1 em aberto: o `origin` ainda aponta pro repositório do Brev.ly. Criar repositório
+  público é ação de publicação — aguardando o autor.
