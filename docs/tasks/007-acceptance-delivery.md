@@ -12,8 +12,8 @@ Checklist do desafio 100% batido, repositório pronto pro envio na plataforma.
 - [x] `README.md` raiz com passo a passo de instalação/execução local, sem menção ao projeto
       anterior — o passo a passo foi conferido a partir de uma cópia limpa dos `.env.example`
       (ver bloqueador 4 da [auditoria](../bugs/audit-fase-6.md)).
-- [x] Lint, typecheck e testes passando em ambos os workspaces — 51 testes (30 back-end,
-      20 front-end, 1 de `test/`).
+- [x] Lint, typecheck e testes passando em ambos os workspaces — 57 testes (30 back-end,
+      26 front-end, 1 de `test/`).
 - [ ] Link do repositório pronto pra envio na plataforma (dentro do período 28/08/26–11/09/26).
 - [x] Funcionalidades extras (se implementadas) isoladas em branch separada, fora da `main` —
       nenhuma implementada até aqui.
@@ -22,7 +22,7 @@ Checklist do desafio 100% batido, repositório pronto pro envio na plataforma.
 
 - Auditoria dos requisitos das Fases 0–5 em [audit-fase-6](../bugs/audit-fase-6.md): os 10
   requisitos funcionais verificados contra a API real, os 4 bloqueadores de entrega resolvidos.
-- `bun run lint`, `bun run typecheck`, `bun run test` (51), `bun run build` aprovados na raiz.
+- `bun run lint`, `bun run typecheck`, `bun run test` (57), `bun run build` aprovados na raiz.
 - Repositório público criado e `origin` reapontado — apontava pro repositório do Brev.ly.
   `main` estava parada no último commit do projeto anterior; fast-forward pro Financy.
 

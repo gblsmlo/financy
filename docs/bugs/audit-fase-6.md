@@ -255,9 +255,12 @@ do dado chegar, em vez de entregar lista vazia.
 
 ## Nits
 
-- **Filtro de período ausente em Transações.** O inventário do Figma registrado no
+- ~~**Filtro de período ausente em Transações.**~~ O inventário do Figma registrado no
   [Task 005](../tasks/005-frontend-foundation.md) lista "busca, tipo, categoria, período,
-  paginação"; os outros quatro existem. É lacuna funcional, não estética.
+  paginação"; só o período não existia. Implementado como `Select` de presets (todo o período,
+  este mês, últimos 30 dias, este ano), pra ficar igual aos outros dois filtros da linha — a
+  forma exata no Figma não foi conferida, então pode virar intervalo de datas na revisão visual.
+  O predicado (`lib/dates.ts`) usa a mesma convenção de fuso do Dashboard.
 - **`description: null` é recusado no `updateCategory`.** O schema declara `description: String`
   (anulável), mas o Zod `.optional()` recusa `null` com `BAD_USER_INPUT`. Omitir o campo mantém o
   valor antigo, então pela API não há como limpar uma descrição a não ser mandando `""`.

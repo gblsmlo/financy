@@ -220,6 +220,11 @@
   laço sequencial; resolver de campo roda concorrente e o Prisma agrupa as `findUnique` do mesmo
   tick numa query com `IN` — 12 transações custam 4 queries, com ou sem `include`. Ficou o teste
   que compara 3 contra 12 linhas e exige custo igual.
-- 51 testes (9 novos no front, 1 no back). Cada correção de comportamento foi conferida quebrando
+- Filtro de período em Transações — era o único dos cinco filtros do Figma que faltava. `Select`
+  de presets (todo o período / este mês / últimos 30 dias / este ano) pra casar com os outros
+  filtros da linha; predicado em `lib/dates.ts`, mesma convenção de fuso do Dashboard. Conferido
+  no browser com transações semeadas em cima de cada fronteira (03/09, 20/08, 10/02, 01/11 do ano
+  anterior): 4 / 1 / 2 / 3 resultados.
+- 57 testes (15 novos no front, 1 no back). Cada correção de comportamento foi conferida quebrando
   o código de propósito primeiro, e as três de UI no browser com back-end real.
 - Segue aberto pra fechar a Fase 6: revisão visual contra o Figma (FR-12) e os nits da auditoria.

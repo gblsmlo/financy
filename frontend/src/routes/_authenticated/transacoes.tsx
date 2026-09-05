@@ -18,6 +18,12 @@ import { categoryColorClasses } from '../../features/categories/visuals'
 import { deleteTransaction, transactionsQueryOptions } from '../../features/transactions/api'
 import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
 import { apiErrorMessage } from '../../lib/api-error'
+import {
+  isWithinPeriod,
+  type TransactionPeriod,
+  transactionPeriodLabels,
+  transactionPeriods,
+} from '../../lib/dates'
 import { formatCents } from '../../lib/money'
 import { cn } from '../../lib/utils'
 
@@ -35,6 +41,7 @@ function TransacoesPage() {
   const [search, setSearch] = useState('')
   const [type, setType] = useState('ALL')
   const [categoryId, setCategoryId] = useState('ALL')
+  const [period, setPeriod] = useState<TransactionPeriod>('ALL')
   const [page, setPage] = useState(1)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -54,9 +61,10 @@ function TransacoesPage() {
       if (search && !t.description.toLowerCase().includes(search.toLowerCase())) return false
       if (type !== 'ALL' && t.type !== type) return false
       if (categoryId !== 'ALL' && t.category.id !== categoryId) return false
+      if (!isWithinPeriod(t.date, period)) return false
       return true
     })
-  }, [transactions, search, type, categoryId])
+  }, [transactions, search, type, categoryId, period])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -81,7 +89,7 @@ function TransacoesPage() {
 
       {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
           placeholder="Buscar por descrição"
           value={search}
@@ -121,6 +129,24 @@ function TransacoesPage() {
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={period}
+          onValueChange={(value) => {
+            setPeriod(value as TransactionPeriod)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            {transactionPeriods.map((option) => (
+              <SelectItem key={option} value={option}>
+                {transactionPeriodLabels[option]}
               </SelectItem>
             ))}
           </SelectContent>
