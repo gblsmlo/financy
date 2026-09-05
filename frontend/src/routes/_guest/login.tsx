@@ -56,13 +56,24 @@ function LoginPage() {
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="mail@exemplo.com" {...register('email')} />
+            <Input
+              id="email"
+              type="email"
+              placeholder="mail@exemplo.com"
+              aria-invalid={!!errors.email}
+              {...register('email')}
+            />
             {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="password">Senha</Label>
-            <Input id="password" type="password" {...register('password')} />
+            <Input
+              id="password"
+              type="password"
+              aria-invalid={!!errors.password}
+              {...register('password')}
+            />
             {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
           </div>
 

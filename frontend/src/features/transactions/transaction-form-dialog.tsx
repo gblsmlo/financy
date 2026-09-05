@@ -161,6 +161,7 @@ export function TransactionFormDialog({ transaction, trigger }: TransactionFormD
             <Input
               id="description"
               placeholder="Ex. Almoço no restaurante"
+              aria-invalid={!!errors.description}
               {...register('description')}
             />
             {errors.description && (
@@ -171,13 +172,19 @@ export function TransactionFormDialog({ transaction, trigger }: TransactionFormD
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="date">Data</Label>
-              <Input id="date" type="date" {...register('date')} />
+              <Input id="date" type="date" aria-invalid={!!errors.date} {...register('date')} />
               {errors.date && <p className="text-xs text-danger">{errors.date.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="amount">Valor</Label>
-              <Input id="amount" inputMode="decimal" placeholder="0,00" {...register('amount')} />
+              <Input
+                id="amount"
+                inputMode="decimal"
+                placeholder="0,00"
+                aria-invalid={!!errors.amount}
+                {...register('amount')}
+              />
               {errors.amount && <p className="text-xs text-danger">{errors.amount.message}</p>}
             </div>
           </div>

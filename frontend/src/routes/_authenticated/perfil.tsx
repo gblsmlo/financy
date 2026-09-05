@@ -60,7 +60,7 @@ function PerfilPage() {
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Nome completo</Label>
-            <Input id="name" {...register('name')} />
+            <Input id="name" aria-invalid={!!errors.name} {...register('name')} />
             {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
           </div>
 

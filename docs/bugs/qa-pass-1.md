@@ -4,7 +4,8 @@ Passada manual pelo app inteiro (mcp Browser embutido) antes da Fase 6, seguindo
 do zero, com back-end e front-end reais rodando (não mock). Bugs numerados por ordem de
 descoberta. Severidade: 🔴 bloqueia requisito, 🟡 UX ruim mas funciona, ⚪ nit.
 
-**Resultado:** 3 achados, nenhum 🔴. Zero erro no console do browser em toda a passada.
+**Resultado:** 3 achados, nenhum 🔴. Zero erro no console do browser em toda a passada. Os 3
+corrigidos no mesmo dia — ver "Correção" em cada um.
 
 ## Cobertura
 
@@ -41,7 +42,7 @@ Form resetando o campo sozinho) e cheguei a documentar isso aqui por um tempo �
 positivo, retirado depois de confirmar com um evento `input` sintético disparado direto via JS
 (o campo esvazia e fica esvaziado normalmente quando o evento é disparado de verdade).
 
-## 1. 🟡 Input com erro não fica com borda vermelha
+## 1. ✅ 🟡 Input com erro não fica com borda vermelha
 
 Em `login`/`cadastro`/modais: quando um campo tem erro de validação, o texto de erro abaixo fica
 vermelho, mas o `Input` continua com a borda neutra (e ganha o anel verde de foco normal, que
@@ -55,7 +56,14 @@ todo formulário que usa `<Input {...register(...)} />` + `errors.campo`.
 com `aria-invalid` amarrado a `!!errors.campo`) e aplicar `border-danger focus:ring-danger`
 quando true.
 
-## 2. ⚪ "Categoria mais utilizada" mostra uma categoria mesmo com 0 transações
+**Correção:** `Input`/`Textarea` ganharam `aria-invalid:border-danger
+aria-invalid:focus:border-danger aria-invalid:focus:ring-danger` (variante `aria-*` do Tailwind
+v4). Todo `<Input {...register('campo')} />` que tinha erro possível ganhou
+`aria-invalid={!!errors.campo}` ao lado do `register` (login, cadastro, perfil, os dois modais).
+Verificado com `getComputedStyle` — borda fica `rgb(239, 68, 68)` (`--color-danger`) quando
+inválido.
+
+## 2. ✅ ⚪ "Categoria mais utilizada" mostra uma categoria mesmo com 0 transações
 
 Criei 3 categorias sem nenhuma transação ainda. O card "Categoria mais utilizada" mostra
 "Alimentação" (a primeira criada) em vez de indicar que não há uso — não é mentira grave, mas é
@@ -68,7 +76,11 @@ mesmo quando todo mundo empata em 0 (sort estável do JS mantém a ordem de cria
 **Fix sugerido:** só mostrar `mostUsed` quando `mostUsed.itemCount > 0`; caso contrário renderizar
 "—" como já é feito pra lista vazia.
 
-## 3. 🟡 Rota inexistente cai numa página preta sem estilo, só "Not Found"
+**Correção:** exatamente isso — `mostUsed` só é definido quando o candidato tem `itemCount > 0`,
+senão fica `undefined` e cai no "—" que já existia pro card. Testado com categoria criada sem
+nenhuma transação: mostra "—".
+
+## 3. ✅ 🟡 Rota inexistente cai numa página preta sem estilo, só "Not Found"
 
 Acessar uma URL que não bate com nenhuma rota (ex.: `/rota-que-nao-existe`) mostra o
 `NotFoundComponent` padrão do TanStack Router: fundo preto, texto "Not Found" sem nenhum estilo
@@ -79,3 +91,7 @@ do app, sem link de volta. Não tem `notFoundComponent` configurado em nenhuma r
 
 **Fix sugerido:** adicionar `notFoundComponent` no root route — página simples com a marca do
 Financy e um link/botão pra voltar pro Dashboard (`/`).
+
+**Correção:** exatamente isso — `notFoundComponent` no `createRootRouteWithContext`, com a marca
+Financy, "Página não encontrada" e um botão "Voltar pro início" (`Link to="/"`). Testado
+navegando pra uma URL inexistente e clicando o botão.

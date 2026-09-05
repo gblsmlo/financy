@@ -22,7 +22,9 @@ function CategoriasPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const totalTransactions = stats.reduce((total, s) => total + s.itemCount, 0)
-  const mostUsed = [...stats].sort((a, b) => b.itemCount - a.itemCount)[0]
+  const mostUsedCandidate = [...stats].sort((a, b) => b.itemCount - a.itemCount)[0]
+  const mostUsed =
+    mostUsedCandidate && mostUsedCandidate.itemCount > 0 ? mostUsedCandidate : undefined
 
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,

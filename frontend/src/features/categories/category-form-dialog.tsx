@@ -107,7 +107,12 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Título</Label>
-            <Input id="name" placeholder="Ex. Alimentação" {...register('name')} />
+            <Input
+              id="name"
+              placeholder="Ex. Alimentação"
+              aria-invalid={!!errors.name}
+              {...register('name')}
+            />
             {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
           </div>
 
