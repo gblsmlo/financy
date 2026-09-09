@@ -104,7 +104,9 @@ describe('auth resolvers', () => {
     })
 
     expect(result.data).toBeFalsy()
-    expect(result.errors?.[0]?.message).toBeTruthy()
+    // O catálogo do better-auth é em inglês; a API responde em português.
+    expect(result.errors?.[0]?.message).toBe('E-mail ou senha incorretos.')
+    expect(result.errors?.[0]?.extensions?.code).toBe('INVALID_EMAIL_OR_PASSWORD')
   })
 
   test('me is denied without a token', async () => {
