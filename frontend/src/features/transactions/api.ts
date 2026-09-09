@@ -14,6 +14,7 @@ const transactionsDocument = graphql(`
       category {
         id
         name
+        icon
         color
       }
     }
@@ -39,6 +40,7 @@ const createTransactionDocument = graphql(`
       category {
         id
         name
+        icon
         color
       }
     }
@@ -64,6 +66,7 @@ const updateTransactionDocument = graphql(`
       category {
         id
         name
+        icon
         color
       }
     }

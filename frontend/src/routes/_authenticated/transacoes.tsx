@@ -1,11 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleArrowDown,
+  CircleArrowUp,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react'
+import { useId, useMemo, useState } from 'react'
+
 import { DeleteConfirmDialog } from '../../components/delete-confirm-dialog'
+import { PageHeader } from '../../components/page-header'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
+import { Field } from '../../components/ui/field'
 import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { Section, SectionFooter } from '../../components/ui/section'
 import {
   Select,
   SelectContent,
@@ -14,7 +28,7 @@ import {
   SelectValue,
 } from '../../components/ui/select'
 import { categoriesQueryOptions } from '../../features/categories/api'
-import { categoryColorClasses } from '../../features/categories/visuals'
+import { CategoryBadge, CategoryIconBox } from '../../features/categories/category-visual'
 import { deleteTransaction, transactionsQueryOptions } from '../../features/transactions/api'
 import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
 import { apiErrorMessage } from '../../lib/api-error'
@@ -33,10 +47,23 @@ export const Route = createFileRoute('/_authenticated/transacoes')({
 
 const PAGE_SIZE = 10
 
+const columnClassName = {
+  description: 'flex-1 min-w-0',
+  date: 'w-20 shrink-0',
+  category: 'w-36 shrink-0',
+  type: 'w-24 shrink-0',
+  amount: 'w-32 shrink-0 text-right',
+  actions: 'w-20 shrink-0 text-right',
+} as const
+
 function TransacoesPage() {
   const { data: transactions = [], isLoading } = useQuery(transactionsQueryOptions)
   const { data: categories = [] } = useQuery(categoriesQueryOptions)
   const queryClient = useQueryClient()
+  const searchId = useId()
+  const typeId = useId()
+  const categorySelectId = useId()
+  const periodId = useId()
 
   const [search, setSearch] = useState('')
   const [type, setType] = useState('ALL')
@@ -71,207 +98,250 @@ function TransacoesPage() {
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Transações</h1>
-          <p className="text-sm text-gray-500">Gerencie todas as suas transações financeiras</p>
+    <>
+      <PageHeader
+        title="Transações"
+        description="Gerencie todas as suas transações financeiras"
+        action={
+          <TransactionFormDialog
+            trigger={
+              <Button>
+                <Plus className="size-4" />
+                Nova transação
+              </Button>
+            }
+          />
+        }
+      />
+
+      {deleteError && <p className="text-sm/5 text-danger">{deleteError}</p>}
+
+      <Card className="grid grid-cols-1 gap-4 px-6 pb-6 pt-5 sm:grid-cols-2 lg:grid-cols-4">
+        <Field>
+          <Label htmlFor={searchId}>Buscar</Label>
+          <Input
+            id={searchId}
+            icon={Search}
+            placeholder="Buscar por descrição"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
+          />
+        </Field>
+
+        <Field>
+          <Label htmlFor={typeId}>Tipo</Label>
+          <Select
+            value={type}
+            onValueChange={(value) => {
+              setType(value)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger id={typeId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos</SelectItem>
+              <SelectItem value="INCOME">Entrada</SelectItem>
+              <SelectItem value="EXPENSE">Saída</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field>
+          <Label htmlFor={categorySelectId}>Categoria</Label>
+          <Select
+            value={categoryId}
+            onValueChange={(value) => {
+              setCategoryId(value)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger id={categorySelectId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todas</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field>
+          <Label htmlFor={periodId}>Período</Label>
+          <Select
+            value={period}
+            onValueChange={(value) => {
+              setPeriod(value as TransactionPeriod)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger id={periodId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {transactionPeriods.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {transactionPeriodLabels[option]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </Card>
+
+      <Section>
+        <div className="flex items-center gap-4 border-b border-gray-200 px-6 py-5 text-xs/4 font-medium uppercase tracking-[0.6px] text-gray-500">
+          <span className={columnClassName.description}>Descrição</span>
+          <span className={columnClassName.date}>Data</span>
+          <span className={columnClassName.category}>Categoria</span>
+          <span className={columnClassName.type}>Tipo</span>
+          <span className={columnClassName.amount}>Valor</span>
+          <span className={columnClassName.actions}>Ações</span>
         </div>
-        <TransactionFormDialog
-          trigger={
-            <Button>
-              <Plus className="size-4" />
-              Nova transação
-            </Button>
-          }
-        />
-      </div>
 
-      {deleteError && <p className="text-sm text-danger">{deleteError}</p>}
+        <ul className="flex flex-col divide-y divide-gray-200">
+          {isLoading && (
+            <li className="px-6 py-6 text-center text-sm/5 text-gray-500">Carregando…</li>
+          )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Input
-          placeholder="Buscar por descrição"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value)
-            setPage(1)
-          }}
-        />
-        <Select
-          value={type}
-          onValueChange={(value) => {
-            setType(value)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos os tipos</SelectItem>
-            <SelectItem value="INCOME">Entrada</SelectItem>
-            <SelectItem value="EXPENSE">Saída</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={categoryId}
-          onValueChange={(value) => {
-            setCategoryId(value)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todas as categorias</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
+          {!isLoading &&
+            paginated.map((t) => (
+              <li key={t.id} className="flex h-18 items-center gap-4 px-6">
+                <div className={cn('flex items-center gap-4', columnClassName.description)}>
+                  <CategoryIconBox category={t.category} />
+                  <p className="truncate text-base/6 font-medium text-gray-800">{t.description}</p>
+                </div>
+
+                <span className={cn('text-sm/5 text-gray-500', columnClassName.date)}>
+                  {new Date(t.date).toLocaleDateString('pt-BR', {
+                    timeZone: 'UTC',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })}
+                </span>
+
+                <span className={columnClassName.category}>
+                  <CategoryBadge category={t.category} />
+                </span>
+
+                <span
+                  className={cn(
+                    'flex items-center gap-2 text-sm/5 font-medium',
+                    t.type === 'INCOME' ? 'text-green-700' : 'text-red-700',
+                    columnClassName.type,
+                  )}
+                >
+                  {t.type === 'INCOME' ? (
+                    <CircleArrowUp className="size-4 shrink-0 text-green-600" />
+                  ) : (
+                    <CircleArrowDown className="size-4 shrink-0 text-red-600" />
+                  )}
+                  {t.type === 'INCOME' ? 'Entrada' : 'Saída'}
+                </span>
+
+                <span
+                  className={cn('text-base/6 font-medium text-gray-800', columnClassName.amount)}
+                >
+                  {t.type === 'INCOME' ? '+' : '-'} {formatCents(t.amountInCents)}
+                </span>
+
+                <span className={columnClassName.actions}>
+                  <span className="flex items-center justify-end gap-2">
+                    <DeleteConfirmDialog
+                      trigger={
+                        <button
+                          type="button"
+                          aria-label="Apagar transação"
+                          className="flex size-8 items-center justify-center rounded-lg text-danger hover:bg-red-100"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      }
+                      title="Apagar transação"
+                      description={`Tem certeza que quer apagar "${t.description}"? Essa ação não pode ser desfeita.`}
+                      onConfirm={() => deleteMutation.mutate(t.id)}
+                    />
+                    <TransactionFormDialog
+                      transaction={t}
+                      trigger={
+                        <button
+                          type="button"
+                          aria-label="Editar transação"
+                          className="flex size-8 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100"
+                        >
+                          <Pencil className="size-4" />
+                        </button>
+                      }
+                    />
+                  </span>
+                </span>
+              </li>
             ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={period}
-          onValueChange={(value) => {
-            setPeriod(value as TransactionPeriod)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Período" />
-          </SelectTrigger>
-          <SelectContent>
-            {transactionPeriods.map((option) => (
-              <SelectItem key={option} value={option}>
-                {transactionPeriodLabels[option]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 text-left text-xs uppercase text-gray-500">
-            <tr>
-              <th className="px-6 py-3 font-medium">Descrição</th>
-              <th className="px-6 py-3 font-medium">Data</th>
-              <th className="px-6 py-3 font-medium">Categoria</th>
-              <th className="px-6 py-3 font-medium">Tipo</th>
-              <th className="px-6 py-3 text-right font-medium">Valor</th>
-              <th className="px-6 py-3 text-right font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {isLoading && (
-              <tr>
-                <td colSpan={6} className="px-6 py-6 text-center text-gray-500">
-                  Carregando…
-                </td>
-              </tr>
-            )}
-            {!isLoading &&
-              paginated.map((t) => {
-                const colors = categoryColorClasses[t.category.color]
-                return (
-                  <tr key={t.id}>
-                    <td className="px-6 py-3 font-medium text-gray-900">{t.description}</td>
-                    <td className="px-6 py-3 text-gray-500">
-                      {new Date(t.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    </td>
-                    <td className="px-6 py-3">
-                      <span
-                        className={cn(
-                          'rounded-full px-2.5 py-1 text-xs font-medium',
-                          colors.bg,
-                          colors.text,
-                        )}
-                      >
-                        {t.category.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-gray-500">
-                      {t.type === 'INCOME' ? 'Entrada' : 'Saída'}
-                    </td>
-                    <td
-                      className={cn(
-                        'px-6 py-3 text-right font-medium',
-                        t.type === 'INCOME' ? 'text-success' : 'text-danger',
-                      )}
-                    >
-                      {t.type === 'INCOME' ? '+' : '-'} {formatCents(t.amountInCents)}
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex justify-end gap-1">
-                        <TransactionFormDialog
-                          transaction={t}
-                          trigger={
-                            <button
-                              type="button"
-                              className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                            >
-                              <Pencil className="size-4" />
-                            </button>
-                          }
-                        />
-                        <DeleteConfirmDialog
-                          trigger={
-                            <button
-                              type="button"
-                              className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-danger"
-                            >
-                              <Trash2 className="size-4" />
-                            </button>
-                          }
-                          title="Apagar transação"
-                          description={`Tem certeza que quer apagar "${t.description}"? Essa ação não pode ser desfeita.`}
-                          onConfirm={() => deleteMutation.mutate(t.id)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            {!isLoading && filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-6 py-6 text-center text-gray-500">
-                  Nenhuma transação encontrada.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          {!isLoading && filtered.length === 0 && (
+            <li className="px-6 py-6 text-center text-sm/5 text-gray-500">
+              Nenhuma transação encontrada.
+            </li>
+          )}
+        </ul>
 
         {filtered.length > 0 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-6 py-3 text-sm text-gray-500">
-            <span>
+          <SectionFooter>
+            <span className="text-sm/5 text-gray-500">
               {(currentPage - 1) * PAGE_SIZE + 1} a{' '}
-              {Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length} resultados
+              {Math.min(currentPage * PAGE_SIZE, filtered.length)} | {filtered.length} resultados
             </span>
-            <div className="flex gap-1">
-              <Button
-                variant="outline"
-                size="sm"
+
+            <nav className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Página anterior"
                 disabled={currentPage === 1}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => setPage(currentPage - 1)}
+                className="flex size-8 items-center justify-center rounded-lg border border-gray-300 text-gray-700 disabled:opacity-50"
               >
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
+                <ChevronLeft className="size-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((number) => (
+                <button
+                  key={number}
+                  type="button"
+                  onClick={() => setPage(number)}
+                  aria-current={number === currentPage ? 'page' : undefined}
+                  className={cn(
+                    'flex size-8 items-center justify-center rounded-lg text-sm/5 font-medium',
+                    number === currentPage
+                      ? 'bg-brand-base text-white'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-100',
+                  )}
+                >
+                  {number}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                aria-label="Próxima página"
                 disabled={currentPage === totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage(currentPage + 1)}
+                className="flex size-8 items-center justify-center rounded-lg border border-gray-300 text-gray-700 disabled:opacity-50"
               >
-                Próxima
-              </Button>
-            </div>
-          </div>
+                <ChevronRight className="size-4" />
+              </button>
+            </nav>
+          </SectionFooter>
         )}
-      </Card>
-    </div>
+      </Section>
+    </>
   )
 }
