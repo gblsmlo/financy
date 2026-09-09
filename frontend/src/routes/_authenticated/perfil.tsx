@@ -49,7 +49,7 @@ function PerfilPage() {
     mutationFn: logout,
     onSuccess: () => {
       queryClient.setQueryData(sessionQueryOptions.queryKey, null)
-      navigate({ to: '/login' })
+      navigate({ to: '/' })
     },
   })
 
