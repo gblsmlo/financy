@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { CircleArrowDown, CircleArrowUp, type LucideIcon } from 'lucide-react'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../../components/ui/dialog'
+import { Field, FieldError } from '../../components/ui/field'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import {
@@ -27,13 +28,10 @@ import {
 import type { TransactionType } from '../../gql/graphql'
 import type { Transaction } from '../../gql/schema-types'
 import { apiErrorMessage } from '../../lib/api-error'
+import { formatCentsForInput, parseAmount, parseAmountToCents } from '../../lib/money'
 import { cn } from '../../lib/utils'
 import { categoriesQueryOptions } from '../categories/api'
 import { createTransaction, updateTransaction } from './api'
-
-function parseAmount(value: string): number {
-  return Number.parseFloat(value.replace(',', '.'))
-}
 
 const transactionSchema = z.object({
   type: z.enum(['EXPENSE', 'INCOME']),
@@ -62,17 +60,50 @@ type TransactionFormDialogProps = {
   trigger: ReactNode
 }
 
+function TypeOption({
+  value,
+  label,
+  icon: Icon,
+  selected,
+  accentClassName,
+}: {
+  value: TransactionType
+  label: string
+  icon: LucideIcon
+  selected: boolean
+  accentClassName: string
+}) {
+  return (
+    <TabsPrimitive.Trigger
+      value={value}
+      className={cn(
+        'flex h-[46px] items-center justify-center gap-3 rounded-lg border px-3 text-base/6 font-medium',
+        selected
+          ? cn('bg-gray-100 text-gray-800', accentClassName)
+          : 'border-transparent text-gray-600',
+      )}
+    >
+      <Icon className={cn('size-4', selected ? undefined : 'text-gray-400')} />
+      {label}
+    </TabsPrimitive.Trigger>
+  )
+}
+
 export function TransactionFormDialog({ transaction, trigger }: TransactionFormDialogProps) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
   const isEditing = Boolean(transaction)
   const { data: categories = [] } = useQuery(categoriesQueryOptions)
+  const descriptionId = useId()
+  const dateId = useId()
+  const amountId = useId()
+  const categorySelectId = useId()
 
   const defaultValues: TransactionForm = {
     type: (transaction?.type as TransactionType) ?? 'EXPENSE',
     description: transaction?.description ?? '',
     date: transaction ? transaction.date.slice(0, 10) : '',
-    amount: transaction ? (transaction.amountInCents / 100).toFixed(2) : '',
+    amount: transaction ? formatCentsForInput(transaction.amountInCents) : '',
     categoryId: transaction?.category.id ?? '',
   }
 
@@ -103,7 +134,7 @@ export function TransactionFormDialog({ transaction, trigger }: TransactionFormD
         type: data.type,
         description: data.description,
         date: data.date,
-        amountInCents: Math.round(parseAmount(data.amount) * 100),
+        amountInCents: parseAmountToCents(data.amount),
         categoryId: data.categoryId,
       }
       return transaction
@@ -126,95 +157,84 @@ export function TransactionFormDialog({ transaction, trigger }: TransactionFormD
         </DialogHeader>
 
         <form
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-6"
           onSubmit={handleSubmit((data) => mutation.mutate(data))}
         >
           <TabsPrimitive.Root
             value={type}
             onValueChange={(value) => setValue('type', value as TransactionType)}
           >
-            <TabsPrimitive.List className="grid grid-cols-2 gap-2">
-              <TabsPrimitive.Trigger
+            <TabsPrimitive.List className="grid grid-cols-2 gap-2 rounded-xl border border-gray-200 p-2">
+              <TypeOption
                 value="EXPENSE"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium',
-                  type === 'EXPENSE'
-                    ? 'border-danger text-danger'
-                    : 'border-gray-200 text-gray-500',
-                )}
-              >
-                <ArrowDownCircle className="size-4" />
-                Despesa
-              </TabsPrimitive.Trigger>
-              <TabsPrimitive.Trigger
+                label="Despesa"
+                icon={CircleArrowDown}
+                selected={type === 'EXPENSE'}
+                accentClassName="border-red-600 [&>svg]:text-red-600"
+              />
+              <TypeOption
                 value="INCOME"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium',
-                  type === 'INCOME'
-                    ? 'border-success text-success'
-                    : 'border-gray-200 text-gray-500',
-                )}
-              >
-                <ArrowUpCircle className="size-4" />
-                Receita
-              </TabsPrimitive.Trigger>
+                label="Receita"
+                icon={CircleArrowUp}
+                selected={type === 'INCOME'}
+                accentClassName="border-green-600 [&>svg]:text-green-600"
+              />
             </TabsPrimitive.List>
           </TabsPrimitive.Root>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              placeholder="Ex. Almoço no restaurante"
-              aria-invalid={!!errors.description}
-              {...register('description')}
-            />
-            {errors.description && (
-              <p className="text-xs text-danger">{errors.description.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="date">Data</Label>
-              <Input id="date" type="date" aria-invalid={!!errors.date} {...register('date')} />
-              {errors.date && <p className="text-xs text-danger">{errors.date.message}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="amount">Valor</Label>
+          <div className="flex flex-col gap-4">
+            <Field>
+              <Label htmlFor={descriptionId}>Descrição</Label>
               <Input
-                id="amount"
-                inputMode="decimal"
-                placeholder="0,00"
-                aria-invalid={!!errors.amount}
-                {...register('amount')}
+                id={descriptionId}
+                placeholder="Ex. Almoço no restaurante"
+                aria-invalid={!!errors.description}
+                {...register('description')}
               />
-              {errors.amount && <p className="text-xs text-danger">{errors.amount.message}</p>}
-            </div>
-          </div>
+              {errors.description && <FieldError>{errors.description.message}</FieldError>}
+            </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>Categoria</Label>
-            <Select value={categoryId} onValueChange={(value) => setValue('categoryId', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.categoryId && (
-              <p className="text-xs text-danger">{errors.categoryId.message}</p>
-            )}
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <Label htmlFor={dateId}>Data</Label>
+                <Input id={dateId} type="date" aria-invalid={!!errors.date} {...register('date')} />
+                {errors.date && <FieldError>{errors.date.message}</FieldError>}
+              </Field>
+
+              <Field>
+                <Label htmlFor={amountId}>Valor</Label>
+                <Input
+                  id={amountId}
+                  inputMode="decimal"
+                  prefix="R$"
+                  placeholder="0,00"
+                  aria-invalid={!!errors.amount}
+                  {...register('amount')}
+                />
+                {errors.amount && <FieldError>{errors.amount.message}</FieldError>}
+              </Field>
+            </div>
+
+            <Field>
+              <Label htmlFor={categorySelectId}>Categoria</Label>
+              <Select value={categoryId} onValueChange={(value) => setValue('categoryId', value)}>
+                <SelectTrigger id={categorySelectId}>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.categoryId && <FieldError>{errors.categoryId.message}</FieldError>}
+            </Field>
           </div>
 
           {mutation.isError && (
-            <p className="text-sm text-danger">
+            <p className="text-sm/5 text-danger">
               {apiErrorMessage(mutation.error, 'Erro ao salvar.')}
             </p>
           )}
