@@ -22,7 +22,7 @@ Figma: https://www.figma.com/community/file/1580994817007013257
 | FR-10 | Listar todas as categorias | 004 | Concluído |
 | FR-11 | Front-end usa GraphQL para consultar a API, Vite como bundler | 005 | Concluído |
 | FR-12 | Front-end segue o mais fielmente possível o layout do Figma | 006 | Concluído |
-| FR-13 | 6 páginas e 2 modais de formulário | 006 | Parcial — a tela de login mora em `/login`, e `/` redireciona; o enunciado pede a de login renderizada na própria raiz |
+| FR-13 | 6 páginas e 2 modais de formulário | 006 | Concluído — a raiz serve login ou dashboard pela sessão; `/login` segue respondendo |
 
 ## Não funcionais — back-end
 

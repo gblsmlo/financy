@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import {
   ChevronRight,
   CircleArrowDown,
@@ -11,16 +11,12 @@ import {
 
 import { Card } from '../../components/ui/card'
 import { Eyebrow, Section, SectionFooter, SectionHeader } from '../../components/ui/section'
-import { CategoryBadge, CategoryIconBox } from '../../features/categories/category-visual'
-import { useCategoryStats } from '../../features/categories/use-category-stats'
-import { transactionsQueryOptions } from '../../features/transactions/api'
-import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
 import { isSameMonthAsToday } from '../../lib/dates'
 import { formatCents } from '../../lib/money'
-
-export const Route = createFileRoute('/_authenticated/')({
-  component: DashboardPage,
-})
+import { CategoryBadge, CategoryIconBox } from '../categories/category-visual'
+import { useCategoryStats } from '../categories/use-category-stats'
+import { transactionsQueryOptions } from '../transactions/api'
+import { TransactionFormDialog } from '../transactions/transaction-form-dialog'
 
 function StatCard({
   icon: Icon,
@@ -44,7 +40,7 @@ function StatCard({
   )
 }
 
-function DashboardPage() {
+export function DashboardPage() {
   const { data: transactions = [] } = useQuery(transactionsQueryOptions)
   const { stats } = useCategoryStats()
 

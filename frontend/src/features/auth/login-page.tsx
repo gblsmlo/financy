@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Eye, EyeOff, Lock, Mail, UserRoundPlus } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -13,13 +13,9 @@ import { Checkbox } from '../../components/ui/checkbox'
 import { Field, FieldError } from '../../components/ui/field'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
-import { login } from '../../features/auth/api'
-import { sessionQueryOptions } from '../../features/auth/session'
 import { apiErrorMessage } from '../../lib/api-error'
-
-export const Route = createFileRoute('/_guest/login')({
-  component: LoginPage,
-})
+import { login } from './api'
+import { sessionQueryOptions } from './session'
 
 const loginSchema = z.object({
   email: z.email('E-mail inválido.'),
@@ -28,7 +24,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-function LoginPage() {
+export function LoginPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const rememberMeId = useId()

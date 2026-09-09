@@ -140,7 +140,7 @@ function CadastroPage() {
           <div className="flex flex-col gap-4">
             <p className="text-center text-sm/5 text-gray-600">Já tem uma conta?</p>
             <Button variant="outline" asChild>
-              <Link to="/login">
+              <Link to="/">
                 <LogIn className="size-4" />
                 Fazer login
               </Link>
