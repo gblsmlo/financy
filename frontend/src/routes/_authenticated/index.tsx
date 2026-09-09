@@ -1,20 +1,48 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, Plus, Wallet } from 'lucide-react'
+import {
+  ChevronRight,
+  CircleArrowDown,
+  CircleArrowUp,
+  type LucideIcon,
+  Plus,
+  Wallet,
+} from 'lucide-react'
 
-import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
+import { Eyebrow, Section, SectionFooter, SectionHeader } from '../../components/ui/section'
+import { CategoryBadge, CategoryIconBox } from '../../features/categories/category-visual'
 import { useCategoryStats } from '../../features/categories/use-category-stats'
-import { categoryColorClasses } from '../../features/categories/visuals'
 import { transactionsQueryOptions } from '../../features/transactions/api'
 import { TransactionFormDialog } from '../../features/transactions/transaction-form-dialog'
 import { isSameMonthAsToday } from '../../lib/dates'
 import { formatCents } from '../../lib/money'
-import { cn } from '../../lib/utils'
 
 export const Route = createFileRoute('/_authenticated/')({
   component: DashboardPage,
 })
+
+function StatCard({
+  icon: Icon,
+  iconClassName,
+  label,
+  value,
+}: {
+  icon: LucideIcon
+  iconClassName: string
+  label: string
+  value: string
+}) {
+  return (
+    <Card className="flex flex-col gap-4">
+      <div className="flex h-5 items-center gap-3">
+        <Icon className={`size-5 shrink-0 ${iconClassName}`} />
+        <Eyebrow>{label}</Eyebrow>
+      </div>
+      <p className="text-[28px]/8 font-bold text-gray-800">{value}</p>
+    </Card>
+  )
+}
 
 function DashboardPage() {
   const { data: transactions = [] } = useQuery(transactionsQueryOptions)
@@ -40,98 +68,121 @@ function DashboardPage() {
   const topCategories = [...stats].sort((a, b) => b.itemCount - a.itemCount).slice(0, 5)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <p className="flex items-center gap-1.5 text-xs font-medium uppercase text-gray-500">
-            <Wallet className="size-3.5" /> Saldo total
-          </p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{formatCents(saldoTotal)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs font-medium uppercase text-gray-500">Receitas do mês</p>
-          <p className="mt-1 text-2xl font-semibold text-success">{formatCents(receitasDoMes)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs font-medium uppercase text-gray-500">Despesas do mês</p>
-          <p className="mt-1 text-2xl font-semibold text-danger">{formatCents(despesasDoMes)}</p>
-        </Card>
-      </div>
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <StatCard
+        icon={Wallet}
+        iconClassName="text-purple-600"
+        label="Saldo total"
+        value={formatCents(saldoTotal)}
+      />
+      <StatCard
+        icon={CircleArrowUp}
+        iconClassName="text-green-600"
+        label="Receitas do mês"
+        value={formatCents(receitasDoMes)}
+      />
+      <StatCard
+        icon={CircleArrowDown}
+        iconClassName="text-red-600"
+        label="Despesas do mês"
+        value={formatCents(despesasDoMes)}
+      />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase text-gray-500">Transações recentes</h2>
-            <Link
-              to="/transacoes"
-              className="flex items-center text-sm font-medium text-brand-base hover:underline"
-            >
-              Ver todas <ChevronRight className="size-4" />
-            </Link>
-          </div>
-          <ul className="flex flex-col divide-y divide-gray-100">
-            {recent.map((t) => (
-              <li key={t.id} className="flex items-center justify-between py-3 text-sm">
-                <div>
-                  <p className="font-medium text-gray-900">{t.description}</p>
-                  <p className="text-gray-500">{t.category.name}</p>
-                </div>
-                <span
-                  className={cn(
-                    'font-medium',
-                    t.type === 'INCOME' ? 'text-success' : 'text-danger',
-                  )}
-                >
+      <Section className="flex flex-col lg:col-span-2">
+        <SectionHeader>
+          <Eyebrow>Transações recentes</Eyebrow>
+          <Link
+            to="/transacoes"
+            className="flex items-center gap-1 px-3 text-sm/5 font-medium text-brand-base hover:underline"
+          >
+            Ver todas <ChevronRight className="size-4" />
+          </Link>
+        </SectionHeader>
+
+        <ul className="flex flex-1 flex-col divide-y divide-gray-200">
+          {recent.map((t) => (
+            <li key={t.id} className="flex h-20 items-center gap-4 px-6">
+              <CategoryIconBox category={t.category} />
+
+              <div className="flex min-w-0 flex-1 flex-col">
+                <p className="truncate text-base/6 font-medium text-gray-800">{t.description}</p>
+                <p className="text-sm/5 text-gray-500">
+                  {new Date(t.date).toLocaleDateString('pt-BR', {
+                    timeZone: 'UTC',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })}
+                </p>
+              </div>
+
+              <div className="w-40 shrink-0">
+                <CategoryBadge category={t.category} />
+              </div>
+
+              <div className="flex w-40 shrink-0 items-center justify-end gap-2">
+                <span className="text-base/6 font-medium text-gray-800">
                   {t.type === 'INCOME' ? '+' : '-'} {formatCents(t.amountInCents)}
                 </span>
-              </li>
-            ))}
-            {recent.length === 0 && (
-              <li className="py-3 text-sm text-gray-500">Nenhuma transação ainda.</li>
-            )}
-          </ul>
+                {t.type === 'INCOME' ? (
+                  <CircleArrowUp className="size-4 shrink-0 text-green-600" />
+                ) : (
+                  <CircleArrowDown className="size-4 shrink-0 text-red-600" />
+                )}
+              </div>
+            </li>
+          ))}
+          {recent.length === 0 && (
+            <li className="flex h-20 items-center px-6 text-sm/5 text-gray-500">
+              Nenhuma transação ainda.
+            </li>
+          )}
+        </ul>
+
+        <SectionFooter className="justify-center">
           <TransactionFormDialog
             trigger={
-              <Button variant="ghost" size="sm" className="mt-2 justify-start px-0">
+              <button
+                type="button"
+                className="flex items-center gap-2 text-base/6 font-medium text-brand-base hover:underline"
+              >
                 <Plus className="size-4" /> Nova transação
-              </Button>
+              </button>
             }
           />
-        </Card>
+        </SectionFooter>
+      </Section>
 
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase text-gray-500">Categorias</h2>
-            <Link
-              to="/categorias"
-              className="flex items-center text-sm font-medium text-brand-base hover:underline"
-            >
-              Gerenciar <ChevronRight className="size-4" />
-            </Link>
-          </div>
-          <ul className="flex flex-col divide-y divide-gray-100">
-            {topCategories.map(({ category, itemCount, totalInCents }) => (
-              <li key={category.id} className="flex items-center justify-between py-3 text-sm">
-                <span
-                  className={cn(
-                    'rounded-full px-2.5 py-1 text-xs font-medium',
-                    categoryColorClasses[category.color].bg,
-                    categoryColorClasses[category.color].text,
-                  )}
-                >
-                  {category.name}
-                </span>
-                <span className="text-gray-500">
-                  {itemCount} {itemCount === 1 ? 'item' : 'itens'} · {formatCents(totalInCents)}
-                </span>
-              </li>
-            ))}
-            {topCategories.length === 0 && (
-              <li className="py-3 text-sm text-gray-500">Nenhuma categoria ainda.</li>
-            )}
-          </ul>
-        </Card>
-      </div>
+      <Section>
+        <SectionHeader>
+          <Eyebrow>Categorias</Eyebrow>
+          <Link
+            to="/categorias"
+            className="flex items-center gap-1 px-3 text-sm/5 font-medium text-brand-base hover:underline"
+          >
+            Gerenciar <ChevronRight className="size-4" />
+          </Link>
+        </SectionHeader>
+
+        <ul className="flex flex-col py-2">
+          {topCategories.map(({ category, itemCount, totalInCents }) => (
+            <li key={category.id} className="flex h-12 items-center gap-3 px-6">
+              <CategoryBadge category={category} />
+              <span className="flex-1 text-right text-sm/5 text-gray-500">
+                {itemCount} {itemCount === 1 ? 'item' : 'itens'}
+              </span>
+              <span className="text-base/6 font-medium text-gray-800">
+                {formatCents(totalInCents)}
+              </span>
+            </li>
+          ))}
+          {topCategories.length === 0 && (
+            <li className="flex h-12 items-center px-6 text-sm/5 text-gray-500">
+              Nenhuma categoria ainda.
+            </li>
+          )}
+        </ul>
+      </Section>
     </div>
   )
 }

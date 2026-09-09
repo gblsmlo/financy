@@ -18,23 +18,22 @@ const category = {
 }
 
 describe('CategoryCard', () => {
-  test('mostra nome, descrição e o resumo de uso', () => {
+  test('mostra nome, descrição e a contagem de uso', () => {
     const view = renderWithQuery(
-      <CategoryCard category={category} itemCount={2} totalInCents={7500} onDelete={() => {}} />,
+      <CategoryCard category={category} itemCount={2} onDelete={() => {}} />,
     )
 
     expect(view.getAllByText('Alimentação').length).toBeGreaterThan(0)
     expect(view.getByText('Mercado e restaurantes')).toBeDefined()
-    expect(view.getByText(/2 itens · R\$ 75,00/)).toBeDefined()
+    expect(view.getByText('2 itens')).toBeDefined()
   })
 
-  test('omite o total quando a categoria não tem transação', () => {
+  test('usa o singular quando a categoria tem uma transação só', () => {
     const view = renderWithQuery(
-      <CategoryCard category={category} itemCount={0} totalInCents={0} onDelete={() => {}} />,
+      <CategoryCard category={category} itemCount={1} onDelete={() => {}} />,
     )
 
-    expect(view.getByText('0 itens')).toBeDefined()
-    expect(view.queryByText(/R\$/)).toBeNull()
+    expect(view.getByText('1 item')).toBeDefined()
   })
 
   // Apagar é destrutivo: o clique no ícone abre o diálogo, quem apaga é a confirmação.
@@ -42,11 +41,10 @@ describe('CategoryCard', () => {
     const onDelete = mock()
 
     const view = renderWithQuery(
-      <CategoryCard category={category} itemCount={0} totalInCents={0} onDelete={onDelete} />,
+      <CategoryCard category={category} itemCount={0} onDelete={onDelete} />,
     )
 
-    const [, deleteTrigger] = view.getAllByRole('button')
-    fireEvent.click(deleteTrigger)
+    fireEvent.click(view.getByRole('button', { name: 'Apagar categoria' }))
 
     await waitFor(() => expect(view.getByText('Apagar categoria')).toBeDefined())
     expect(onDelete).not.toHaveBeenCalled()

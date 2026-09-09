@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { createRootRouteWithContext, Link, Outlet, useRouter } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
+import { Logo } from '../components/logo'
 import { Button } from '../components/ui/button'
 
 export type RouterContext = {
@@ -25,9 +26,9 @@ function Message({
 }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-100 p-4 text-center">
-      <span className="text-lg font-semibold text-brand-dark">Financy</span>
-      <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-      <p className="max-w-sm text-sm text-gray-500">{description}</p>
+      <Logo />
+      <h1 className="text-2xl/8 font-bold text-gray-800">{title}</h1>
+      <p className="max-w-sm text-base/6 text-gray-600">{description}</p>
       {action}
     </main>
   )
